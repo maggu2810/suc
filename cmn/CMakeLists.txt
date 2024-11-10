@@ -10,7 +10,9 @@ add_library(${NAME}
         include/suc/cmn/cleanup.hxx
         include/suc/cmn/logging.hxx
         include/suc/cmn/overloaded.hxx
+        include/suc/cmn/to_string.hxx
         src/cleanup.cxx
+        src/to_string.cxx
 )
 
 target_include_directories(${NAME} PUBLIC

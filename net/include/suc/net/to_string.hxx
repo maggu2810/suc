@@ -20,8 +20,6 @@
 #include <string>
 
 namespace suc::net {
-    std::string strerrnum(int errnum);
-
     std::string to_string(const inaddr_storage &address);
 
     std::string to_string(const in_addr &address);

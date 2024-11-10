@@ -18,7 +18,6 @@
 #include <suc/cmn/overloaded.hxx>
 
 #include <sstream>
-#include <cstring>
 #include <arpa/inet.h>
 
 namespace {
@@ -35,12 +34,6 @@ namespace {
 }
 
 namespace suc::net {
-    std::string strerrnum(int errnum) {
-        char buffer[128];
-        const char *str = ::strerror_r(errnum, buffer, sizeof(buffer));
-        return std::format("[{}] {}", errnum, str);
-    }
-
     std::string to_string(const inaddr_storage &address) {
         using R = std::string;
         return std::visit(suc::cmn::overloaded{

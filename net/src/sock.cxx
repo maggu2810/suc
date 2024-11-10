@@ -18,6 +18,7 @@
 
 #include <suc/net/getaddrinfo.hxx>
 #include <suc/cmn/logging.hxx>
+#include <suc/cmn/to_string.hxx>
 #include <suc/net/to_string.hxx>
 
 #include <fcntl.h>
@@ -70,13 +71,13 @@ namespace suc::net {
                 const int sockfd = socket(p->ai_family, p->ai_socktype | socket_flags,
                                           p->ai_protocol);
                 if (sockfd == -1) {
-                    LOGE("socket: {}", strerrnum(errno));
+                    LOGE("socket: {}", suc::cmn::strerrnum(errno));
                     continue;
                 }
 
                 if (bind(sockfd, p->ai_addr, p->ai_addrlen) == -1) {
                     close(sockfd);
-                    LOGE("bind: {}", strerrnum(errno));
+                    LOGE("bind: {}", suc::cmn::strerrnum(errno));
                     continue;
                 }
 
@@ -84,7 +85,7 @@ namespace suc::net {
                     const int enable = 1;
                     if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(enable)) == -1) {
                         close(sockfd);
-                        LOGE("setsockopt: {}", strerrnum(errno));
+                        LOGE("setsockopt: {}", suc::cmn::strerrnum(errno));
                         continue;
                     }
                 }
@@ -122,13 +123,13 @@ namespace suc::net {
                 const int sockfd = socket(p->ai_family, p->ai_socktype | socket_flags,
                                           p->ai_protocol);
                 if (sockfd == -1) {
-                    LOGE("socket: {}", strerrnum(errno));
+                    LOGE("socket: {}", suc::cmn::strerrnum(errno));
                     continue;
                 }
 
                 if (connect(sockfd, p->ai_addr, p->ai_addrlen) == -1) {
                     close(sockfd);
-                    LOGE("connect: {}", strerrnum(errno));
+                    LOGE("connect: {}", suc::cmn::strerrnum(errno));
                     continue;
                 }
 
@@ -157,12 +158,12 @@ namespace suc::net {
         const bool ipv4 = setsockopt(sock, IPPROTO_IP, IP_PKTINFO, &enable, sizeof(enable)) == -1;
         if (!ipv4) {
             const auto errnum = errno;
-            LOGW("setsockopt failed: ipv4 pktinfo: {}", strerrnum(errnum));
+            LOGW("setsockopt failed: ipv4 pktinfo: {}", suc::cmn::strerrnum(errnum));
         }
         const bool ipv6 = setsockopt(sock, IPPROTO_IPV6, IPV6_RECVPKTINFO, &enable, sizeof(enable)) == -1;
         if (!ipv6) {
             const auto errnum = errno;
-            LOGW("setsockopt failed: ipv6 pktinfo: {}", strerrnum(errnum));
+            LOGW("setsockopt failed: ipv6 pktinfo: {}", suc::cmn::strerrnum(errnum));
         }
         return std::make_pair(ipv4, ipv6);
     }
@@ -181,14 +182,14 @@ namespace suc::net {
                 LOGD("getsockname: {}", net::to_string(reinterpret_cast<sockaddr&>(addr_sock), addr_sock_len));
             } else {
                 const auto errnum = errno;
-                LOGW("getsockname failed: {}", strerrnum(errnum));
+                LOGW("getsockname failed: {}", suc::cmn::strerrnum(errnum));
             }
             if (getpeername(sockfd, reinterpret_cast<sockaddr *>(&addr_peer),
                             &addr_peer_len) == 0) {
                 LOGD("getpeername: {}", net::to_string(reinterpret_cast<sockaddr&>(addr_sock), addr_sock_len));
             } else {
                 const auto errnum = errno;
-                LOGW("getpeername failed: {}", strerrnum(errnum));
+                LOGW("getpeername failed: {}", suc::cmn::strerrnum(errnum));
             }
         }
 #endif

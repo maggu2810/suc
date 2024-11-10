@@ -12,16 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <suc/net/getifaddrs.hxx>
+#ifndef SUC_CMN_TO_STRING_HXX
+#define SUC_CMN_TO_STRING_HXX
 
-#include <suc/cmn/to_string.hxx>
+#include <string>
 
-namespace suc::net {
-    std::expected<std::shared_ptr<ifaddrs>, std::string> getifaddrs() {
-        ifaddrs *ifap{};
-        if (int rv = getifaddrs(&ifap); rv != 0) {
-            return std::unexpected(suc::cmn::strerrnum(errno));
-        }
-        return std::shared_ptr<ifaddrs>{ifap, freeifaddrs};
-    }
+namespace suc::cmn {
+    std::string strerrnum(int errnum);
 }
+
+#endif //SUC_CMN_TO_STRING_HXX
