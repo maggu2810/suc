@@ -19,21 +19,42 @@
 #include <suc/net/sock.hxx>
 #include <suc/net/to_string.hxx>
 #include <suc/net/inaddr_storage.hxx>
+#include <suc/cmn/to_string.hxx>
 
 int main(int argc, char *argv[]) {
     int tcp_client = suc::net::create_connected_socket(suc::net::socket_type::tcp, "google.com", 80, false);
     int udp_client = suc::net::create_connected_socket(suc::net::socket_type::udp, "google.com", 80, false);
 
-    int sock = suc::net::create_bound_socket(suc::net::socket_type::udp, 13400, false, true);
-    if (sock < 0) { return EXIT_FAILURE; };
-    if (auto [ipv4, ipv6] = suc::net::prepare_for_recv_info(sock); !ipv4 && !ipv6) {
+    int sockfd = suc::net::create_bound_socket(suc::net::socket_type::udp, 13400, false, true);
+    if (sockfd < 0) { return EXIT_FAILURE; };
+    if (auto [ipv4, ipv6] = suc::net::prepare_for_recv_info(sockfd); !ipv4 && !ipv6) {
         return EXIT_FAILURE;
+    } {
+        sockaddr_storage addr_sock{};
+        socklen_t addr_sock_len = sizeof(addr_sock);
+        sockaddr_storage addr_peer{};
+        socklen_t addr_peer_len = sizeof(addr_peer);
+        if (getsockname(sockfd, reinterpret_cast<sockaddr *>(&addr_sock),
+                        &addr_sock_len) == 0) {
+            LOGD("getsockname: {}", suc::net::to_string(reinterpret_cast<sockaddr&>(addr_sock), addr_sock_len));
+        } else {
+            const auto errnum = errno;
+            LOGW("getsockname failed: {}", suc::cmn::strerrnum(errnum));
+        }
+        if (getpeername(sockfd, reinterpret_cast<sockaddr *>(&addr_peer),
+                        &addr_peer_len) == 0) {
+            LOGD("getpeername: {}", suc::net::to_string(reinterpret_cast<sockaddr&>(addr_sock), addr_sock_len));
+        } else {
+            const auto errnum = errno;
+            LOGW("getpeername failed: {}", suc::cmn::strerrnum(errnum));
+        }
     }
+
     while (true) {
         std::uint8_t buf[1500];
         suc::net::inaddr_storage host_addr;
         sockaddr_storage ss_peer; // NOLINT(*-pro-type-member-init)
-        if (suc::net::recvfromadv(sock, buf, sizeof(buf), &host_addr, &ss_peer) == -1) {
+        if (suc::net::recvfromadv(sockfd, buf, sizeof(buf), &host_addr, &ss_peer) == -1) {
             break;
         }
         const auto iface = suc::net::get_ifacename(host_addr);

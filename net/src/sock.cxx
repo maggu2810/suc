@@ -65,41 +65,33 @@ namespace suc::net {
 
         logd(servinfo->get());
 
-        int sockfd = [](addrinfo *servinfo, bool non_blocking, bool reuse_addr) {
-            for (addrinfo *p = servinfo; p != nullptr; p = p->ai_next) {
-                const int socket_flags = SOCK_CLOEXEC | (non_blocking ? SOCK_NONBLOCK : 0);
-                const int sockfd = socket(p->ai_family, p->ai_socktype | socket_flags,
-                                          p->ai_protocol);
-                if (sockfd == -1) {
-                    LOGE("socket: {}", suc::cmn::strerrnum(errno));
-                    continue;
-                }
-
-                if (bind(sockfd, p->ai_addr, p->ai_addrlen) == -1) {
-                    close(sockfd);
-                    LOGE("bind: {}", suc::cmn::strerrnum(errno));
-                    continue;
-                }
-
-                if (reuse_addr) {
-                    const int enable = 1;
-                    if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(enable)) == -1) {
-                        close(sockfd);
-                        LOGE("setsockopt: {}", suc::cmn::strerrnum(errno));
-                        continue;
-                    }
-                }
-
-                return sockfd;
+        for (addrinfo *p = servinfo->get(); p != nullptr; p = p->ai_next) {
+            const int socket_flags = SOCK_CLOEXEC | (non_blocking ? SOCK_NONBLOCK : 0);
+            const int sockfd = socket(p->ai_family, p->ai_socktype | socket_flags,
+                                      p->ai_protocol);
+            if (sockfd == -1) {
+                LOGE("socket: {}", suc::cmn::strerrnum(errno));
+                continue;
             }
-            return -1;
-        }(servinfo.value().get(), non_blocking, reuse_addr);
 
-        if (sockfd == -1) {
-            return -1;
+            if (bind(sockfd, p->ai_addr, p->ai_addrlen) == -1) {
+                close(sockfd);
+                LOGE("bind: {}", suc::cmn::strerrnum(errno));
+                continue;
+            }
+
+            if (reuse_addr) {
+                const int enable = 1;
+                if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(enable)) == -1) {
+                    close(sockfd);
+                    LOGE("setsockopt: {}", suc::cmn::strerrnum(errno));
+                    continue;
+                }
+            }
+
+            return sockfd;
         }
-
-        return sockfd;
+        return -1;
     }
 
     int create_connected_socket(socket_type socket_type, const std::string &host, std::uint16_t port,
@@ -117,50 +109,41 @@ namespace suc::net {
 
         logd(servinfo->get());
 
-        int sockfd = [](addrinfo *servinfo, bool non_blocking) {
-            for (addrinfo *p = servinfo; p != nullptr; p = p->ai_next) {
-                constexpr int socket_flags = SOCK_CLOEXEC;
-                const int sockfd = socket(p->ai_family, p->ai_socktype | socket_flags,
-                                          p->ai_protocol);
-                if (sockfd == -1) {
-                    LOGE("socket: {}", suc::cmn::strerrnum(errno));
-                    continue;
-                }
-
-                if (connect(sockfd, p->ai_addr, p->ai_addrlen) == -1) {
-                    close(sockfd);
-                    LOGE("connect: {}", suc::cmn::strerrnum(errno));
-                    continue;
-                }
-
-                if (non_blocking) {
-                    if (fcntl(sockfd, F_SETFL, fcntl(sockfd, F_GETFL, 0) | O_NONBLOCK) == -1) {
-                        close(sockfd);
-                        continue;
-                    }
-                }
-
-                return sockfd;
+        for (addrinfo *p = servinfo->get(); p != nullptr; p = p->ai_next) {
+            constexpr int socket_flags = SOCK_CLOEXEC;
+            const int sockfd = socket(p->ai_family, p->ai_socktype | socket_flags,
+                                      p->ai_protocol);
+            if (sockfd == -1) {
+                LOGE("socket: {}", suc::cmn::strerrnum(errno));
+                continue;
             }
-            return -1;
-        }(servinfo.value().get(), non_blocking);
 
-        if (sockfd == -1) {
-            return -1;
+            if (connect(sockfd, p->ai_addr, p->ai_addrlen) == -1) {
+                close(sockfd);
+                LOGE("connect: {}", suc::cmn::strerrnum(errno));
+                continue;
+            }
+
+            if (non_blocking) {
+                if (fcntl(sockfd, F_SETFL, fcntl(sockfd, F_GETFL, 0) | O_NONBLOCK) == -1) {
+                    close(sockfd);
+                    continue;
+                }
+            }
+
+            return sockfd;
         }
-
-        return sockfd;
+        return -1;
     }
-
 
     std::pair<bool, bool> prepare_for_recv_info(int sock) {
         const int enable = 1;
-        const bool ipv4 = setsockopt(sock, IPPROTO_IP, IP_PKTINFO, &enable, sizeof(enable)) == -1;
+        const bool ipv4 = setsockopt(sock, IPPROTO_IP, IP_PKTINFO, &enable, sizeof(enable)) != -1;
         if (!ipv4) {
             const auto errnum = errno;
             LOGW("setsockopt failed: ipv4 pktinfo: {}", suc::cmn::strerrnum(errnum));
         }
-        const bool ipv6 = setsockopt(sock, IPPROTO_IPV6, IPV6_RECVPKTINFO, &enable, sizeof(enable)) == -1;
+        const bool ipv6 = setsockopt(sock, IPPROTO_IPV6, IPV6_RECVPKTINFO, &enable, sizeof(enable)) != -1;
         if (!ipv6) {
             const auto errnum = errno;
             LOGW("setsockopt failed: ipv6 pktinfo: {}", suc::cmn::strerrnum(errnum));
@@ -171,29 +154,6 @@ namespace suc::net {
     ssize_t recvfromadv(int sockfd, void *buf, size_t len,
                         inaddr_storage *host_addr,
                         sockaddr_storage *peer_addr) {
-#if 1
-        {
-            sockaddr_storage addr_sock{};
-            socklen_t addr_sock_len = sizeof(addr_sock);
-            sockaddr_storage addr_peer{};
-            socklen_t addr_peer_len = sizeof(addr_peer);
-            if (getsockname(sockfd, reinterpret_cast<sockaddr *>(&addr_sock),
-                            &addr_sock_len) == 0) {
-                LOGD("getsockname: {}", net::to_string(reinterpret_cast<sockaddr&>(addr_sock), addr_sock_len));
-            } else {
-                const auto errnum = errno;
-                LOGW("getsockname failed: {}", suc::cmn::strerrnum(errnum));
-            }
-            if (getpeername(sockfd, reinterpret_cast<sockaddr *>(&addr_peer),
-                            &addr_peer_len) == 0) {
-                LOGD("getpeername: {}", net::to_string(reinterpret_cast<sockaddr&>(addr_sock), addr_sock_len));
-            } else {
-                const auto errnum = errno;
-                LOGW("getpeername failed: {}", suc::cmn::strerrnum(errnum));
-            }
-        }
-#endif
-
         sockaddr_storage my_sockaddr_storage_peer{};
         iovec my_iovec[1]{{.iov_base = buf, .iov_len = len}};
         std::uint8_t buffer[CMSG_SPACE(sizeof(in_pktinfo)) + CMSG_SPACE(sizeof(in6_pktinfo)) + 1000];

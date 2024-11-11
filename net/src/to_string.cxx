@@ -23,6 +23,8 @@
 namespace {
     template<typename INADDR, int AF, int SZ>
     std::string inet_ntop_wrapper(const INADDR &address) {
+        static_assert((AF == AF_INET && SZ >= INET_ADDRSTRLEN) || (AF == AF_INET6 && SZ >= INET6_ADDRSTRLEN));
+
         char buf[SZ];
         if (::inet_ntop(AF, &address, buf, sizeof(buf)) == nullptr) {
             const auto errnum = errno;
