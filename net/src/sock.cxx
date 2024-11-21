@@ -136,7 +136,7 @@ namespace suc::net {
         return -1;
     }
 
-    std::pair<bool, bool> prepare_for_recv_info(int sock) {
+    std::pair<bool, bool> prepare_for_udp_receive(int sock) {
         const int enable = 1;
         const bool ipv4 = setsockopt(sock, IPPROTO_IP, IP_PKTINFO, &enable, sizeof(enable)) != -1;
         if (!ipv4) {
@@ -151,7 +151,7 @@ namespace suc::net {
         return std::make_pair(ipv4, ipv6);
     }
 
-    ssize_t recvfromadv(int sockfd, void *buf, size_t len,
+    ssize_t udp_receive(int sockfd, void *buf, size_t len,
                         inaddr_storage *host_addr,
                         sockaddr_storage *peer_addr) {
         sockaddr_storage my_sockaddr_storage_peer{};

@@ -26,13 +26,15 @@
 #include "socket_type.hxx"
 
 namespace suc::net {
-    int create_bound_socket(socket_type socket_type, std::uint16_t port, bool non_blocking = false, bool reuse_addr = false);
+    int create_bound_socket(socket_type socket_type, std::uint16_t port, bool non_blocking = false,
+                            bool reuse_addr = false);
 
-    int create_connected_socket(socket_type socket_type, const std::string& host, std::uint16_t port, bool non_blocking = false);
+    int create_connected_socket(socket_type socket_type, const std::string &host, std::uint16_t port,
+                                bool non_blocking = false);
 
-    std::pair<bool, bool> prepare_for_recv_info(int sock);
+    std::pair<bool, bool> prepare_for_udp_receive(int sock);
 
-    ssize_t recvfromadv(int sockfd, void *buf, size_t len,
+    ssize_t udp_receive(int sockfd, void *buf, size_t len,
                         inaddr_storage *host_addr,
                         sockaddr_storage *peer_addr);
 }
