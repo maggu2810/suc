@@ -1,19 +1,14 @@
 cmake_minimum_required(VERSION 3.28.2)
 
 set(NAMESPACE suc)
-set(TARGET cmn)
-set(NAME ${NAMESPACE}-${TARGET})
+set(TARGET example)
+set(SUBTARGET cmn)
+set(NAME ${NAMESPACE}-${TARGET}-${SUBTARGET})
 
 project(${NAME})
 
-add_library(${NAME}
-        include/suc/cmn/cleanup.hxx
-        include/suc/cmn/endian.hxx
-        include/suc/cmn/logging.hxx
-        include/suc/cmn/overloaded.hxx
-        include/suc/cmn/to_string.hxx
-        src/cleanup.cxx
-        src/to_string.cxx
+add_executable(${NAME}
+        src/main.cxx
 )
 
 target_include_directories(${NAME} PUBLIC
@@ -22,3 +17,4 @@ target_include_directories(${NAME} PUBLIC
 )
 
 target_link_libraries(${NAME} PUBLIC suc-ci-pub PRIVATE suc-ci-prv INTERFACE suc-ci-iface)
+target_link_libraries(${NAME} PRIVATE suc-cmn)
