@@ -27,7 +27,7 @@ int main(int argc, char *argv[]) {
 
     int sockfd = suc::net::create_bound_socket(suc::net::socket_type::udp, 13400, false, true);
     if (sockfd < 0) { return EXIT_FAILURE; };
-    if (auto [ipv4, ipv6] = suc::net::prepare_for_recv_info(sockfd); !ipv4 && !ipv6) {
+    if (auto [ipv4, ipv6] = suc::net::prepare_for_udp_receive(sockfd); !ipv4 && !ipv6) {
         return EXIT_FAILURE;
     } {
         sockaddr_storage addr_sock{};
@@ -54,7 +54,7 @@ int main(int argc, char *argv[]) {
         std::uint8_t buf[1500];
         suc::net::inaddr_storage host_addr;
         sockaddr_storage ss_peer; // NOLINT(*-pro-type-member-init)
-        if (suc::net::recvfromadv(sockfd, buf, sizeof(buf), &host_addr, &ss_peer) == -1) {
+        if (suc::net::udp_receive(sockfd, buf, sizeof(buf), &host_addr, &ss_peer) == -1) {
             break;
         }
         const auto iface = suc::net::get_ifacename(host_addr);
