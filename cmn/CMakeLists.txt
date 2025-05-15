@@ -10,9 +10,13 @@ add_library(${NAME}
         include/suc/cmn/cleanup.hxx
         include/suc/cmn/endian.hxx
         include/suc/cmn/logging.hxx
+        include/suc/cmn/openfd.hxx
         include/suc/cmn/overloaded.hxx
+        include/suc/cmn/runtimeerror_errno.hxx
         include/suc/cmn/to_string.hxx
         src/cleanup.cxx
+        src/openfd.cxx
+        src/runtimeerror_errno.cxx
         src/to_string.cxx
 )
 
