@@ -22,10 +22,13 @@
 
 
 namespace {
-    suc::cmn::openfd get_line(int chip_fd, std::uint32_t line, std::uint64_t flags) {
+    suc::cmn::openfd get_line(int chip_fd, std::uint32_t line, std::uint64_t flags, std::uint32_t debounce_period_us) {
         gpio_v2_line_request line_request{.offsets = {line},
             .consumer                              = "tbd",
-            .config                                = {.flags = flags, .num_attrs = 0, .attrs = {}},
+            .config                                = {.flags = flags,
+                                               .num_attrs    = 1,
+                                               .attrs        = {{.attr{.id = GPIO_V2_LINE_ATTR_ID_DEBOUNCE, .debounce_period_us = debounce_period_us},
+                                                          .mask = 1}}},
             .num_lines                             = 1,
             .event_buffer_size                     = 0,
             .padding                               = {},
@@ -41,18 +44,20 @@ namespace {
 namespace suc::gpio {
     chip::chip(int chip_number) : m_fd{std::format("/dev/gpiochip{}", chip_number).c_str(), O_RDONLY | O_NONBLOCK} {}
 
-    input chip::get_input(std::uint32_t line, bool activeLow) {
-        return input{
-            get_line(m_fd.fd(), line, GPIO_V2_LINE_FLAG_INPUT | (activeLow ? GPIO_V2_LINE_FLAG_ACTIVE_LOW : 0))};
-    }
-    output chip::get_output(std::uint32_t line, bool activeLow) {
-        return output{
-            get_line(m_fd.fd(), line, GPIO_V2_LINE_FLAG_OUTPUT | (activeLow ? GPIO_V2_LINE_FLAG_ACTIVE_LOW : 0))};
+    input chip::get_input(std::uint32_t line, std::uint32_t debounce_period_us, bool activeLow) {
+        return input{get_line(m_fd.fd(), line, GPIO_V2_LINE_FLAG_INPUT | (activeLow ? GPIO_V2_LINE_FLAG_ACTIVE_LOW : 0),
+            debounce_period_us)};
     }
 
-    event chip::get_event(std::uint32_t line, bool activeLow) {
+    event chip::get_event(std::uint32_t line, std::uint32_t debounce_period_us, bool activeLow) {
         return event{get_line(m_fd.fd(), line,
             GPIO_V2_LINE_FLAG_INPUT | GPIO_V2_LINE_FLAG_EDGE_FALLING | GPIO_V2_LINE_FLAG_EDGE_RISING
-                | (activeLow ? GPIO_V2_LINE_FLAG_ACTIVE_LOW : 0))};
+                | (activeLow ? GPIO_V2_LINE_FLAG_ACTIVE_LOW : 0),
+            debounce_period_us)};
+    }
+
+    output chip::get_output(std::uint32_t line, bool activeLow) {
+        return output{
+            get_line(m_fd.fd(), line, GPIO_V2_LINE_FLAG_OUTPUT | (activeLow ? GPIO_V2_LINE_FLAG_ACTIVE_LOW : 0), 0)};
     }
 } // namespace suc::gpio

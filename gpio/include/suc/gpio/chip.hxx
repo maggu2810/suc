@@ -26,9 +26,9 @@ namespace suc::gpio {
     public:
         explicit chip(int chip_number);
 
-        input get_input(std::uint32_t line, bool activeLow = false);
+        input get_input(std::uint32_t line, std::uint32_t debounce_period_us = 0, bool activeLow = false);
+        event get_event(std::uint32_t line, std::uint32_t debounce_period_us = 0, bool activeLow = false);
         output get_output(std::uint32_t line, bool activeLow = false);
-        event get_event(std::uint32_t line, bool activeLow = false);
 
     private:
         suc::cmn::openfd m_fd;
