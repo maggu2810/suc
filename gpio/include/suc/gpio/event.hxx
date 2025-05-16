@@ -24,14 +24,15 @@
 namespace suc::gpio {
     class event : protected input {
     public:
-        enum class edge_event { rising, falling };
+        enum class edge { rising, falling };
 
         explicit event(suc::cmn::openfd&& fd);
         using input::get;
 
         void poll_setup(pollfd& pfd) const;
-        void poll_inspect(
-            pollfd& pfd, const std::function<void(std::uint64_t ts_mon_ns, edge_event event)>& handler) const;
+
+        using edge_handler = std::function<void(std::uint64_t ts_mon_ns, edge event)>;
+        void poll_inspect(pollfd& pfd, const edge_handler& handler) const;
     };
 } // namespace suc::gpio
 

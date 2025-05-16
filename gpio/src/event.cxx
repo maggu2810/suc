@@ -32,19 +32,18 @@ namespace suc::gpio {
         pfd.events  = POLLIN;
         pfd.revents = 0;
     }
-    void event::poll_inspect(
-        pollfd& pfd, const std::function<void(std::uint64_t ts_mon_ns, edge_event event)>& handler) const {
+    void event::poll_inspect(pollfd& pfd, const edge_handler& handler) const {
         if (pfd.revents & POLLIN) {
             gpio_v2_line_event event{};
             if (read(m_fd.fd(), &event, sizeof(event)) != sizeof(event)) {
                 throw suc::cmn::runtimeerror_errno("read event");
             };
-            handler(event.timestamp_ns, [](const std::uint32_t id) -> edge_event {
+            handler(event.timestamp_ns, [](const std::uint32_t id) -> edge {
                 if (id == GPIOEVENT_EVENT_RISING_EDGE) {
-                    return edge_event::rising;
+                    return edge::rising;
                 }
                 if (id == GPIOEVENT_EVENT_FALLING_EDGE) {
-                    return edge_event::falling;
+                    return edge::falling;
                 }
                 throw std::runtime_error("unknown edge event");
             }(event.id));
