@@ -19,16 +19,29 @@
 #include "input.hxx"
 #include "output.hxx"
 #include <cstdint>
+#include <optional>
+#include <string>
 #include <suc/cmn/openfd.hxx>
 
 namespace suc::gpio {
+    struct line_args {
+        std::string consumer{program_invocation_short_name};
+        bool active_low{false};
+    };
+
+    struct input_line_args {
+        std::optional<std::uint32_t> debounce_period_us{};
+    };
+
     class chip {
     public:
         explicit chip(int chip_number);
 
-        input get_input(std::uint32_t line, std::uint32_t debounce_period_us = 0, bool activeLow = false);
-        event get_event(std::uint32_t line, std::uint32_t debounce_period_us = 0, bool activeLow = false);
-        output get_output(std::uint32_t line, bool activeLow = false);
+        [[nodiscard]] input get_input(
+            std::uint32_t line, const line_args& line_args = {}, const input_line_args& input_line_args = {}) const;
+        [[nodiscard]] event get_event(
+            std::uint32_t line, const line_args& line_args = {}, const input_line_args& input_line_args = {}) const;
+        [[nodiscard]] output get_output(std::uint32_t line, const line_args& line_args = {}) const;
 
     private:
         suc::cmn::openfd m_fd;

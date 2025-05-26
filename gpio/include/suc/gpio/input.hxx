@@ -22,7 +22,7 @@ namespace suc::gpio {
     public:
         explicit input(suc::cmn::openfd&& fd);
 
-        bool get() const;
+        [[nodiscard]] bool get() const;
     };
 } // namespace suc::gpio
 
