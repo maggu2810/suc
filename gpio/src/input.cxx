@@ -20,12 +20,12 @@
 #include <sys/ioctl.h>
 
 namespace suc::gpio {
-    input::input(suc::cmn::openfd&& fd) : line(std::move(fd)) {}
+    input::input(suc::cmn::fd&& fd) : line(std::move(fd)) {}
 
     bool input::get() const {
         gpio_v2_line_values values{.bits = 0ULL, .mask = 1};
 
-        if (ioctl(m_fd.fd(), GPIO_V2_LINE_GET_VALUES_IOCTL, &values) == -1) {
+        if (ioctl(m_fd, GPIO_V2_LINE_GET_VALUES_IOCTL, &values) == -1) {
             throw suc::cmn::runtimeerror_errno("get");
         }
 

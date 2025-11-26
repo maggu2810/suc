@@ -12,27 +12,35 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef SUC_CMN_OPENFD_HXX
-#define SUC_CMN_OPENFD_HXX
+#ifndef SUC_CMN_FD_HXX
+#define SUC_CMN_FD_HXX
+
+#include <string_view>
 
 namespace suc::cmn {
-    class openfd {
+    class fd {
     public:
-        explicit openfd(int fd);
-        explicit openfd(const char* pathname, int flags);
-        ~openfd();
+        static fd make_or_rteeno(int fd, std::string_view msg={});
+        static fd make(int fd);
 
-        openfd(const openfd&)            = delete;
-        openfd& operator=(const openfd&) = delete;
+    private:
+        fd(int fd);
 
-        openfd(openfd&&) noexcept;
-        openfd& operator=(openfd&&) noexcept;
+    public:
+        ~fd();
 
-        [[nodiscard]] int fd() const;
+        fd(const fd&)            = delete;
+        fd& operator=(const fd&) = delete;
+
+        fd(fd&&) noexcept;
+        fd& operator=(fd&&) noexcept;
+
+        [[nodiscard]] const int& operator*() const;
+        [[nodiscard]] operator int() const;
 
     private:
         int m_fd{-1};
     };
 } // namespace suc::cmn
 
-#endif // SUC_CMN_OPENFD_HXX
+#endif // SUC_CMN_FD_HXX

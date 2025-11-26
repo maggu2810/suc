@@ -14,16 +14,17 @@
 
 #include "suc/cmn/runtimeerror_errno.hxx"
 
+#include "suc/cmn/to_string.hxx"
 #include <cstring>
 #include <format>
 
 namespace {
-    std::string genmsg(const std::string_view msg) {
-        const int errnum = errno;
-        return std::format("{} [{}: {}: {}]", msg, errnum, strerrorname_np(errnum), strerrordesc_np(errnum));
+    std::string genmsg(const std::string_view msg, const int errnum) {
+        return std::format("{} [{}]", msg, suc::cmn::strerrnum(errnum));
     }
 } // namespace
 
 namespace suc::cmn {
-    runtimeerror_errno::runtimeerror_errno(const std::string_view msg) : std::runtime_error{genmsg(msg)} {}
+    runtimeerror_errno::runtimeerror_errno(const std::string_view msg, const int errnum)
+        : std::runtime_error{genmsg(msg, errnum)} {}
 } // namespace suc::cmn

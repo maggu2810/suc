@@ -12,43 +12,47 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "suc/cmn/openfd.hxx"
-
-#include <fcntl.h>
-#include <format>
-#include <stdexcept>
+#include "suc/cmn/fd.hxx"
+#include "suc/cmn/runtimeerror_errno.hxx"
 #include <unistd.h>
 #include <utility>
 
-namespace {
-    int fdcheck(int fd) {
-        if (fd < 0) {
-            throw std::runtime_error("not an open file descriptor");
-        }
-        return fd;
-    }
-} // namespace
-
 namespace suc::cmn {
-    openfd::openfd(int fd) : m_fd{fdcheck(fd)} {}
+    fd fd::make_or_rteeno(int fd, std::string_view msg) {
+        if (fd < 0) {
+            throw runtimeerror_errno(msg, errno);
+        }
+        return {fd};
+    }
+    fd fd::make(int fd) {
+        if (fd < 0) {
+            throw std::runtime_error("not a valid file descriptor");
+        }
+        return {fd};
+    }
 
-    openfd::openfd(const char* pathname, int flags) : m_fd{fdcheck(open(pathname, flags))} {}
+    fd::fd(int fd) : m_fd{fd} {}
 
-    openfd::~openfd() {
+    fd::~fd() {
         if (m_fd >= 0) {
             close(m_fd);
             m_fd = -1;
         }
     }
 
-    openfd::openfd(openfd&& other) noexcept : m_fd{std::exchange(other.m_fd, -1)} {}
+    fd::fd(fd&& other) noexcept : m_fd{std::exchange(other.m_fd, -1)} {}
 
-    openfd& openfd::operator=(openfd&& other) noexcept {
+    fd& fd::operator=(fd&& other) noexcept {
         std::swap(m_fd, other.m_fd);
         return *this;
     }
 
-    int openfd::fd() const {
+    const int& fd::operator*() const {
         return m_fd;
     }
+
+    fd::operator int() const {
+        return m_fd;
+    }
+
 } // namespace suc::cmn

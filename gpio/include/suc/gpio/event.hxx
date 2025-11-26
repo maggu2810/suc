@@ -26,7 +26,7 @@ namespace suc::gpio {
     public:
         enum class edge { rising, falling };
 
-        explicit event(suc::cmn::openfd&& fd);
+        explicit event(suc::cmn::fd&& fd);
         using input::get;
 
         void poll_setup(pollfd& pfd) const;

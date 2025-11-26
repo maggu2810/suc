@@ -20,7 +20,7 @@
 namespace suc::gpio {
     class input : protected line {
     public:
-        explicit input(suc::cmn::openfd&& fd);
+        explicit input(suc::cmn::fd&& fd);
 
         [[nodiscard]] bool get() const;
     };

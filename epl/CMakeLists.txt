@@ -1,23 +1,16 @@
 cmake_minimum_required(VERSION 3.28.2)
 
 set(NAMESPACE suc)
-set(TARGET cmn)
+set(TARGET epl)
 set(NAME ${NAMESPACE}-${TARGET})
 
 project(${NAME})
 
 add_library(${NAME}
-        include/suc/cmn/cleanup.hxx
-        include/suc/cmn/endian.hxx
-        include/suc/cmn/logging.hxx
-        include/suc/cmn/fd.hxx
-        include/suc/cmn/overloaded.hxx
-        include/suc/cmn/runtimeerror_errno.hxx
-        include/suc/cmn/to_string.hxx
-        src/cleanup.cxx
+        include/suc/epl/epleq.hxx
+        include/suc/epl/fd.hxx
+        src/epleq.cxx
         src/fd.cxx
-        src/runtimeerror_errno.cxx
-        src/to_string.cxx
 )
 
 target_include_directories(${NAME} PUBLIC
@@ -26,3 +19,4 @@ target_include_directories(${NAME} PUBLIC
 )
 
 target_link_libraries(${NAME} PUBLIC suc-ci-pub PRIVATE suc-ci-prv INTERFACE suc-ci-iface)
+target_link_libraries(${NAME} PUBLIC suc-cmn)

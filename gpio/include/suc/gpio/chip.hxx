@@ -21,11 +21,11 @@
 #include <cstdint>
 #include <optional>
 #include <string>
-#include <suc/cmn/openfd.hxx>
+#include <suc/cmn/fd.hxx>
 
 namespace suc::gpio {
     struct line_args {
-        std::string consumer{program_invocation_short_name};
+        std::string_view consumer;
         bool active_low{false};
     };
 
@@ -44,7 +44,7 @@ namespace suc::gpio {
         [[nodiscard]] output get_output(std::uint32_t line, const line_args& line_args = {}) const;
 
     private:
-        suc::cmn::openfd m_fd;
+        suc::cmn::fd m_fd;
     };
 } // namespace suc::gpio
 

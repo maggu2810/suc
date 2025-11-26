@@ -25,17 +25,17 @@
 #include <unistd.h>
 
 namespace suc::gpio {
-    event::event(suc::cmn::openfd&& fd) : input(std::move(fd)) {}
+    event::event(suc::cmn::fd&& fd) : input(std::move(fd)) {}
 
     void event::poll_setup(pollfd& pfd) const {
-        pfd.fd      = m_fd.fd();
+        pfd.fd      = m_fd;
         pfd.events  = POLLIN;
         pfd.revents = 0;
     }
     void event::poll_inspect(pollfd& pfd, const edge_handler& handler) const {
         if (pfd.revents & POLLIN) {
             gpio_v2_line_event event{};
-            if (read(m_fd.fd(), &event, sizeof(event)) != sizeof(event)) {
+            if (read(m_fd, &event, sizeof(event)) != sizeof(event)) {
                 throw suc::cmn::runtimeerror_errno("read event");
             };
             handler(event.timestamp_ns, [](const std::uint32_t id) -> edge {

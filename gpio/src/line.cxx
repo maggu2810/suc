@@ -17,5 +17,5 @@
 #include <algorithm>
 
 namespace suc::gpio {
-    line::line(suc::cmn::openfd&& fd) : m_fd(std::move(fd)) {}
+    line::line(suc::cmn::fd&& fd) : m_fd(std::move(fd)) {}
 } // namespace suc::gpio
