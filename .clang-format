@@ -36,6 +36,7 @@ InsertBraces: true
 InsertNewlineAtEOF: true
 MaxEmptyLinesToKeep: 2
 NamespaceIndentation: All
+PackConstructorInitializers: Never
 PointerAlignment: Left
 RemoveSemicolon: true
 SpaceAfterCStyleCast: true
