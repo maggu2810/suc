@@ -12,57 +12,56 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "suc/cmn/runtimeerror_errno.hxx"
 #include <fcntl.h>
 #include <iostream>
-#include <suc/epl/epleq.hxx>
-#include <suc/epl/fd.hxx>
+#include <suc/cmn/runtimeerror_errno.hxx>
+#include <suc/epl/base/EventQueue.hxx>
+#include <suc/epl/base/Fd.hxx>
+#include <suc/epl/common/Timer.hxx>
 
 int main(int argc, char* argv[]) {
-    suc::epl::epleq epleq;
+    auto eventQueue = suc::epl::EventQueue::coreInstance();
 
+#if 0
     int p[2];
     if (pipe2(p, O_NONBLOCK | O_CLOEXEC) == -1) {
         throw suc::cmn::runtimeerror_errno("pipe2 failed");
     }
 
-    suc::epl::fd testfd0{suc::cmn::fd::make(p[0]), epleq};
-    suc::epl::fd testfd1{suc::cmn::fd::make(p[1]), epleq};
+    suc::epl::Fd testfd0{suc::cmn::fd::make(p[0]), eventQueue};
+    suc::epl::Fd testfd1{suc::cmn::fd::make(p[1]), eventQueue};
 
     int cnt = 0;
 
-#if 0
-    testfd0.on_out([](int fd) {
-        std::cout << "on out (fd0): ";
-        int rv =write(fd, "hello", 5);
-        std::cout << rv << " written\n";
-    });
-#endif
-    testfd0.on_in([](int fd) {
+    testfd0.onInputAvailable([](int fd) {
         std::cout << "on in (fd0): ";
         char buffer[512];
         int rv = read(fd, buffer, sizeof(buffer));
         std::cout << rv << " read\n";
     });
-    testfd1.on_out([&](int fd) {
+    testfd1.onOutputPossible([&](int fd) {
         std::cout << "on out (fd1): ";
-        int rv =write(fd, "hello", 5);
+        int rv = write(fd, "hello", 5);
         std::cout << rv << " written\n";
         if (++cnt >= 100) {
-            epleq.stop();
+            eventQueue->stop();
         }
-    });
-#if 0
-    testfd1.on_in([](int fd) {
-        std::cout << "on in (fd1): ";
-        char buffer[512];
-        read(fd, buffer, sizeof(buffer));
-        int rv = read(fd, buffer, sizeof(buffer));
-        std::cout << rv << " read\n";
     });
 #endif
 
-    epleq.start();
+    suc::epl::Timer timer {};
+    timer.onShot([](auto numberOfExpirations) {
+        std::print(std::cout, "number of expirations: {}\n", numberOfExpirations);
+    });
+    timer.setTime({.it_interval = {.tv_sec = 1, .tv_nsec=0}, .it_value = {.tv_sec = 0, .tv_nsec=1}});
+
+    suc::epl::Timer timerShutdown{};
+    timerShutdown.onShot([&](auto _) {
+        eventQueue->stop();
+    });
+    timerShutdown.setTime({.it_value = {.tv_sec = 10}});
+
+    eventQueue->exec();
 
     return EXIT_SUCCESS;
 }

@@ -7,10 +7,13 @@ set(NAME ${NAMESPACE}-${TARGET})
 project(${NAME})
 
 add_library(${NAME}
-        include/suc/epl/epleq.hxx
-        include/suc/epl/fd.hxx
-        src/epleq.cxx
-        src/fd.cxx
+        include/suc/epl/base/EventQueue.hxx
+        src/base/EventQueue.cxx
+        include/suc/epl/base/InputFlags.hxx
+        include/suc/epl/base/Fd.hxx
+        src/base/Fd.cxx
+        include/suc/epl/common/Timer.hxx
+        src/common/Timer.cxx
 )
 
 target_include_directories(${NAME} PUBLIC
