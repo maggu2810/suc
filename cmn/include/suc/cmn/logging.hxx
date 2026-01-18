@@ -31,14 +31,14 @@
  * | 7 | DEBUG     | Debug-level messages             |
  */
 
-#define LOGD(...) suc::logging::debug(__VA_ARGS__)
-#define LOGI(...) suc::logging::info(__VA_ARGS__)
-#define LOGN(...) suc::logging::notice(__VA_ARGS__)
-#define LOGW(...) suc::logging::warn(__VA_ARGS__)
-#define LOGE(...) suc::logging::err(__VA_ARGS__)
-#define LOGC(...) suc::logging::crit(__VA_ARGS__)
-#define LOGA(...) suc::logging::alert(__VA_ARGS__)
-#define LOGU(...) suc::logging::emerg(__VA_ARGS__)
+#define LOGFD(...) suc::logging::debug(__VA_ARGS__)
+#define LOGFI(...) suc::logging::info(__VA_ARGS__)
+#define LOGFN(...) suc::logging::notice(__VA_ARGS__)
+#define LOGFW(...) suc::logging::warn(__VA_ARGS__)
+#define LOGFE(...) suc::logging::err(__VA_ARGS__)
+#define LOGFC(...) suc::logging::crit(__VA_ARGS__)
+#define LOGFA(...) suc::logging::alert(__VA_ARGS__)
+#define LOGFU(...) suc::logging::emerg(__VA_ARGS__)
 
 namespace suc::logging {
     enum class level {
