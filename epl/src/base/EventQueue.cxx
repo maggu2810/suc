@@ -73,15 +73,14 @@ namespace {
 } // namespace
 
 namespace suc::epl {
-    std::shared_ptr<EventQueue> EventQueue::coreInstance() {
+    EventQueue& EventQueue::coreInstance() {
         static auto instance = create();
         return instance;
     }
 
-    std::shared_ptr<EventQueue> EventQueue::create() {
-        return std::make_shared<EventQueue>(Private());
+    EventQueue EventQueue::create() {
+        return EventQueue(Private());
     }
-
 
     EventQueue::EventQueue(Private)
         : m_epfd{cmn::fd::make_or_rteeno(epoll_create1(EPOLL_CLOEXEC), "creation of epoll fd failed")},

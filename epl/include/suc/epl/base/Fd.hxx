@@ -25,7 +25,7 @@
 namespace suc::epl {
     class Fd {
     public:
-        explicit Fd(cmn::fd&& fd, EPL_EQ_CA_DEF);
+        explicit Fd(cmn::fd&& fd, EventQueue& eventQueue = EventQueue::coreInstance());
         ~Fd();
 
         Fd(const Fd&)            = delete;
@@ -47,7 +47,7 @@ namespace suc::epl {
 
     private:
         cmn::fd m_fd;
-        std::shared_ptr<EventQueue> m_eventQueue;
+        EventQueue& m_eventQueue;
     };
 } // namespace suc::epl
 

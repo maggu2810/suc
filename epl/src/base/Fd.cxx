@@ -1,4 +1,4 @@
-// Copyright [2025] [maggu2810]
+// Copyright [2025-2026] [maggu2810]
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,17 +19,17 @@
 
 #include "../../../gpio/include/suc/gpio/event.hxx"
 
-#define EQ_MOD(MEMBER) m_eventQueue->mod(m_fd, [&](auto& cb) { cb.MEMBER = std::move(func); })
+#define EQ_MOD(MEMBER) m_eventQueue.mod(m_fd, [&](auto& cb) { cb.MEMBER = std::move(func); })
 
 namespace suc::epl {
-    Fd::Fd(cmn::fd&& fd, EPL_EQ_CA_DEC)
+    Fd::Fd(cmn::fd&& fd, EventQueue& eventQueue)
         : m_fd(std::move(fd)),
-          m_eventQueue(std::move(eventQueue)) {
-        m_eventQueue->add(m_fd);
+          m_eventQueue(eventQueue) {
+        m_eventQueue.add(m_fd);
     }
 
     Fd::~Fd() {
-        m_eventQueue->del(m_fd);
+        m_eventQueue.del(m_fd);
     }
 
     void Fd::onInputAvailable(std::function<void()> func) const {

@@ -24,7 +24,7 @@
 namespace suc::epl {
     class Timer {
     public:
-        explicit Timer(EPL_EQ_CA_DEF);
+        explicit Timer(EventQueue& eventQueue = EventQueue::coreInstance());
 
         void setTime(const itimerspec& value) const;
 

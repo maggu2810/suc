@@ -22,10 +22,6 @@
 #include <atomic>
 #include <functional>
 #include <map>
-#include <memory>
-
-#define EPL_EQ_CA_DEF std::shared_ptr<EventQueue> eventQueue = EventQueue::coreInstance()
-#define EPL_EQ_CA_DEC std::shared_ptr<EventQueue> eventQueue
 
 /* epoll */
 namespace suc::epl {
@@ -42,14 +38,15 @@ namespace suc::epl {
 
     /** epoll based event queue */
     class EventQueue {
+
         struct Private {
             explicit Private() = default;
         };
 
     public:
-        static std::shared_ptr<EventQueue> coreInstance();
+        static EventQueue& coreInstance();
 
-        static std::shared_ptr<EventQueue> create();
+        static EventQueue create();
 
         explicit EventQueue(Private);
 

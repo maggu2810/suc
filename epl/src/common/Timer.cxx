@@ -22,13 +22,13 @@
 #include <suc/cmn/logging.hxx>
 #include <suc/cmn/runtimeerror_errno.hxx>
 #include <suc/cmn/to_string.hxx>
-#include <utility>
 #include <sys/timerfd.h>
+#include <utility>
 
 namespace suc::epl {
-    Timer::Timer(EPL_EQ_CA_DEC)
+    Timer::Timer(EventQueue& eventQueue)
         : m_fd(Fd{
-              suc::cmn::fd::make_or_rteeno(timerfd_create(CLOCK_MONOTONIC, TFD_NONBLOCK | TFD_CLOEXEC)), std::move(eventQueue)}) {}
+              suc::cmn::fd::make_or_rteeno(timerfd_create(CLOCK_MONOTONIC, TFD_NONBLOCK | TFD_CLOEXEC)), eventQueue}) {}
 
     void Timer::setTime(const itimerspec& value) const {
         if (timerfd_settime(m_fd, 0, &value, nullptr) != 0) {

@@ -20,7 +20,7 @@
 #include <suc/epl/common/Timer.hxx>
 
 int main(int argc, char* argv[]) {
-    auto eventQueue = suc::epl::EventQueue::coreInstance();
+    suc::epl::EventQueue& eventQueue = suc::epl::EventQueue::coreInstance();
 
 #if 0
     int p[2];
@@ -57,11 +57,11 @@ int main(int argc, char* argv[]) {
 
     suc::epl::Timer timerShutdown{};
     timerShutdown.onShot([&](auto _) {
-        eventQueue->stop();
+        eventQueue.stop();
     });
     timerShutdown.setTime({.it_value = {.tv_sec = 10}});
 
-    eventQueue->exec();
+    eventQueue.exec();
 
     return EXIT_SUCCESS;
 }
