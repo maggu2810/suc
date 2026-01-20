@@ -50,8 +50,10 @@ namespace suc::epl {
 
         explicit EventQueue(Private);
 
-        void exec();
-        void stop();
+        int exec();
+        void stop(int value = 0);
+
+        bool running() const;
 
         void add(int fd, std::function<void(cb&)> reg = {});
         void mod(int fd, std::function<void(cb&)> reg);
@@ -68,8 +70,9 @@ namespace suc::epl {
 
         cmn::fd m_epfd;
         cmn::fd m_evtfd;
-        std::atomic<State> m_state;
         std::map<int, cb> m_fds;
+        std::atomic<State> m_state;
+        std::atomic_int m_exitCode{1};
     };
 } // namespace suc::epl
 

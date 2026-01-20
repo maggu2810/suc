@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <chrono>
 #include <fcntl.h>
 #include <iostream>
 #include <suc/cmn/runtimeerror_errno.hxx>
@@ -51,9 +52,9 @@ int main(int argc, char* argv[]) {
 
     suc::epl::Timer timer {};
     timer.onShot([](auto numberOfExpirations) {
-        std::print(std::cout, "number of expirations: {}\n", numberOfExpirations);
+        std::print(std::cout, "[{}] number of expirations: {}\n",std::chrono::system_clock::now(), numberOfExpirations);
     });
-    timer.setTime({.it_interval = {.tv_sec = 1, .tv_nsec=0}, .it_value = {.tv_sec = 0, .tv_nsec=1}});
+    timer.setTime({.it_interval = {.tv_sec = 1, .tv_nsec=0}, .it_value = {.tv_sec = 3, .tv_nsec=0}});
 
     suc::epl::Timer timerShutdown{};
     timerShutdown.onShot([&](auto _) {
@@ -61,7 +62,6 @@ int main(int argc, char* argv[]) {
     });
     timerShutdown.setTime({.it_value = {.tv_sec = 10}});
 
-    eventQueue.exec();
-
-    return EXIT_SUCCESS;
+    std::print(std::cout, "[{}] start event loop\n",std::chrono::system_clock::now());
+    return eventQueue.exec();
 }

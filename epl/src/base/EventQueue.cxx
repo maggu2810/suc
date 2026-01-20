@@ -98,10 +98,10 @@ namespace suc::epl {
         }
     }
 
-    void EventQueue::exec() {
+    int EventQueue::exec() {
         State expected{State::Idle};
         if (!m_state.compare_exchange_strong(expected, State::Running)) {
-            return;
+            throw std::runtime_error("event queue not in idle state");
         }
         uint64_t cnt;
         read(*m_evtfd, &cnt, sizeof(cnt));
@@ -143,15 +143,21 @@ namespace suc::epl {
                 }
             }
         }
+        return m_exitCode;
     }
 
-    void EventQueue::stop() {
+    void EventQueue::stop(int value) {
         State expected{State::Running};
         if (!m_state.compare_exchange_strong(expected, State::Stopping)) {
             return;
         }
+        m_exitCode = value;
         uint64_t incr = 1;
         write(*m_evtfd, &incr, sizeof(incr));
+    }
+
+    bool EventQueue::running() const {
+        return m_state == State::Running;
     }
 
     void EventQueue::add(int fd, std::function<void(cb&)> reg) {
