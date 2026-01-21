@@ -26,9 +26,20 @@ namespace suc::epl {
     public:
         explicit Timer(EventQueue& eventQueue = EventQueue::coreInstance());
 
+        explicit Timer(std::function<void(uint64_t)> func, EventQueue& eventQueue = EventQueue::coreInstance());
+
+        explicit Timer(const itimerspec& value, std::function<void(uint64_t)> func,
+            EventQueue& eventQueue = EventQueue::coreInstance());
+
         void setTime(const itimerspec& value) const;
 
+        void cancel() const;
+
         void onShot(std::function<void(uint64_t)> func) const;
+
+    private:
+        [[nodiscard]] std::uint64_t readNumberOfExpirations() const;
+        void lowLevelSetTime(const itimerspec& value) const;
 
     private:
         Fd m_fd;

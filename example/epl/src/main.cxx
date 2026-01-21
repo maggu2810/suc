@@ -19,6 +19,9 @@
 #include <suc/epl/base/EventQueue.hxx>
 #include <suc/epl/base/Fd.hxx>
 #include <suc/epl/common/Timer.hxx>
+#include <thread>
+#include <any>
+#include <memory>
 
 int main(int argc, char* argv[]) {
     suc::epl::EventQueue& eventQueue = suc::epl::EventQueue::coreInstance();
@@ -50,18 +53,27 @@ int main(int argc, char* argv[]) {
     });
 #endif
 
-    suc::epl::Timer timer {};
-    timer.onShot([](auto numberOfExpirations) {
-        std::print(std::cout, "[{}] number of expirations: {}\n",std::chrono::system_clock::now(), numberOfExpirations);
-    });
-    timer.setTime({.it_interval = {.tv_sec = 1, .tv_nsec=0}, .it_value = {.tv_sec = 3, .tv_nsec=0}});
+    suc::epl::Timer timer{{{1, 0}, {}}, [](auto numberOfExpirations) {
+                              std::print(std::cout, "[{}] number of expirations: {}\n",
+                                  std::chrono::system_clock::now(), numberOfExpirations);
+                          }};
 
-    suc::epl::Timer timerShutdown{};
-    timerShutdown.onShot([&](auto _) {
-        eventQueue.stop();
-    });
-    timerShutdown.setTime({.it_value = {.tv_sec = 10}});
+    suc::epl::Timer timerShutdown{{{}, {10}}, [&](auto _) { eventQueue.stop(); }};
 
-    std::print(std::cout, "[{}] start event loop\n",std::chrono::system_clock::now());
+    std::print(std::cout, "[{}] start event loop\n", std::chrono::system_clock::now());
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+    std::map<void*, std::any> container;
+    {
+        auto tmpTimer = std::make_shared<suc::epl::Timer>();
+        container.emplace(tmpTimer.get(), tmpTimer);
+        tmpTimer->setTime({{},{1,0}});
+        tmpTimer->onShot([&container,&tmpTimer](auto _) {
+            container.erase(tmpTimer.get());
+            std::print(std::cout, "hello world\n");
+        });
+    }
+
     return eventQueue.exec();
 }
