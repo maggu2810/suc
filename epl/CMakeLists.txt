@@ -12,6 +12,8 @@ add_library(${NAME}
         include/suc/epl/base/InputFlags.hxx
         include/suc/epl/base/Fd.hxx
         src/base/Fd.cxx
+        include/suc/epl/common/Signal.hxx
+        src/common/Signal.cxx
         include/suc/epl/common/Timer.hxx
         src/common/Timer.cxx
 )
