@@ -53,7 +53,7 @@ namespace suc::epl {
         int exec();
         void stop(int value = 0);
 
-        bool running() const;
+        [[nodiscard]] bool running() const;
 
         void add(int fd, std::function<void(cb&)> reg = {});
         void mod(int fd, std::function<void(cb&)> reg);
