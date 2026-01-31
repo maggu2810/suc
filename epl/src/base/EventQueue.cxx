@@ -107,9 +107,9 @@ namespace suc::epl {
         read(*m_evtfd, &cnt, sizeof(cnt));
 
         constexpr int max_events = 20;
-        epoll_event events[max_events];
-        while (m_state == State::Running) {
-            const int rv = epoll_wait(*m_epfd, events, std::size(events), 0);
+        epoll_event eplEvents[max_events];
+        while (running()) {
+            const int rv = epoll_wait(*m_epfd, eplEvents, std::size(eplEvents), 0);
             if (rv == -1) {
                 int errnum = errno;
                 m_state.store(State::Error);
@@ -119,25 +119,25 @@ namespace suc::epl {
             if (m_state.compare_exchange_strong(expected, State::Stopped)) {
                 break;
             }
-            for (int i = 0; i < rv; ++i) {
-                const epoll_event& event = events[i];
-                if (const auto it = m_fds.find(event.data.fd); it != m_fds.end()) {
-                    if (event.events & EPOLLIN && it->second.inputAvailable) {
+            for (int i = 0; running() && i < rv; ++i) {
+                const auto& [events, data] = eplEvents[i];
+                if (const auto it = m_fds.find(data.fd); it != m_fds.end()) {
+                    if (running() && events & EPOLLIN && it->second.inputAvailable) {
                         it->second.inputAvailable();
                     }
-                    if (events->events & EPOLLOUT && it->second.outputPossible) {
+                    if (running() && events & EPOLLOUT && it->second.outputPossible) {
                         it->second.outputPossible();
                     }
-                    if (events->events & EPOLLRDHUP && it->second.readSideHangUp) {
+                    if (running() && events & EPOLLRDHUP && it->second.readSideHangUp) {
                         it->second.readSideHangUp();
                     }
-                    if (events->events & EPOLLPRI && it->second.priorityData) {
+                    if (running() && events & EPOLLPRI && it->second.priorityData) {
                         it->second.priorityData();
                     }
-                    if (events->events & EPOLLERR && it->second.errorOccurred) {
+                    if (running() && events & EPOLLERR && it->second.errorOccurred) {
                         it->second.errorOccurred();
                     }
-                    if (events->events & EPOLLHUP && it->second.hangUp) {
+                    if (running() && events & EPOLLHUP && it->second.hangUp) {
                         it->second.hangUp();
                     }
                 }
