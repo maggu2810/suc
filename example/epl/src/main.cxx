@@ -12,19 +12,27 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <any>
 #include <chrono>
 #include <fcntl.h>
 #include <iostream>
+#include <memory>
 #include <suc/cmn/runtimeerror_errno.hxx>
 #include <suc/epl/base/EventQueue.hxx>
 #include <suc/epl/base/Fd.hxx>
+#include <suc/epl/common/Signal.hxx>
 #include <suc/epl/common/Timer.hxx>
 #include <thread>
-#include <any>
-#include <memory>
+#include <csignal>
 
 int main(int argc, char* argv[]) {
     suc::epl::EventQueue& eventQueue = suc::epl::EventQueue::coreInstance();
+
+    suc::epl::Signal signal {{SIGTERM}};
+    signal.onSignal([&eventQueue](auto&& siginfo) {
+        std::print(std::cout, "received signal: {}\n", siginfo.ssi_signo);
+        eventQueue.stop();
+    });
 
 #if 0
     int p[2];
