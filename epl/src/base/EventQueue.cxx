@@ -18,12 +18,15 @@
 
 #include "suc/epl/base/EventQueue.hxx"
 
+#include "../../../gpio/include/suc/gpio/event.hxx"
 #include "suc/epl/base/InputFlags.hxx"
+#include <format>
 #include <set>
 #include <suc/cmn/runtimeerror_errno.hxx>
 #include <sys/epoll.h>
 #include <sys/eventfd.h>
 #include <unistd.h>
+#include <utility>
 
 #if 0
 enum class event_type {
@@ -56,18 +59,38 @@ enum class event_type {
 
 
 namespace {
+    constexpr const std::initializer_list<EPOLL_EVENTS> kEventTypes{
+        EPOLLIN, EPOLLOUT, EPOLLRDHUP, EPOLLPRI, EPOLLERR, EPOLLHUP};
+
+    const std::function<void()>& cbFunc(const suc::epl::cb& cb, EPOLL_EVENTS eventType) {
+        switch (eventType) {
+        case EPOLLIN:
+            return cb.inputAvailable;
+        case EPOLLOUT:
+            return cb.outputPossible;
+        case EPOLLRDHUP:
+            return cb.readSideHangUp;
+        case EPOLLPRI:
+            return cb.priorityData;
+        case EPOLLERR:
+            return cb.errorOccurred;
+        case EPOLLHUP:
+            return cb.hangUp;
+        default:
+            throw std::runtime_error(std::format("unknown event type: {}", std::to_underlying(eventType)));
+        }
+    }
+
     uint32_t calculateEvents(const suc::epl::cb& cb, const std::set<suc::epl::InputFlags> iflags) {
-        uint32_t events = //
-            (cb.inputAvailable ? EPOLLIN : 0U) | //
-            (cb.outputPossible ? EPOLLOUT : 0U) | //
-            (cb.readSideHangUp ? EPOLLRDHUP : 0U) | //
-            (cb.priorityData ? EPOLLPRI : 0U) | //
-            (cb.errorOccurred ? EPOLLERR : 0U) | //
-            (cb.hangUp ? EPOLLHUP : 0U) | //
-            (iflags.contains(suc::epl::InputFlags::EdgeTriggered) ? EPOLLET : 0U) | //
-            (iflags.contains(suc::epl::InputFlags::OneShot) ? EPOLLONESHOT : 0U) | //
-            (iflags.contains(suc::epl::InputFlags::WakeUp) ? EPOLLWAKEUP : 0U) | //
-            (iflags.contains(suc::epl::InputFlags::Exclusive) ? EPOLLEXCLUSIVE : 0U); //
+        uint32_t events = (iflags.contains(suc::epl::InputFlags::EdgeTriggered) ? EPOLLET : 0U) | //
+                          (iflags.contains(suc::epl::InputFlags::OneShot) ? EPOLLONESHOT : 0U) | //
+                          (iflags.contains(suc::epl::InputFlags::WakeUp) ? EPOLLWAKEUP : 0U) | //
+                          (iflags.contains(suc::epl::InputFlags::Exclusive) ? EPOLLEXCLUSIVE : 0U); //
+        for (const auto& eventType : kEventTypes) {
+            if (cbFunc(cb, eventType)) {
+                events |= eventType;
+            }
+        }
         return events;
     }
 } // namespace
@@ -121,29 +144,49 @@ namespace suc::epl {
             }
             for (int i = 0; running() && i < rv; ++i) {
                 const auto& [events, data] = eplEvents[i];
-                if (const auto it = m_fds.find(data.fd); it != m_fds.end()) {
-                    if (running() && events & EPOLLIN && it->second.inputAvailable) {
-                        it->second.inputAvailable();
-                    }
-                    if (running() && events & EPOLLOUT && it->second.outputPossible) {
-                        it->second.outputPossible();
-                    }
-                    if (running() && events & EPOLLRDHUP && it->second.readSideHangUp) {
-                        it->second.readSideHangUp();
-                    }
-                    if (running() && events & EPOLLPRI && it->second.priorityData) {
-                        it->second.priorityData();
-                    }
-                    if (running() && events & EPOLLERR && it->second.errorOccurred) {
-                        it->second.errorOccurred();
-                    }
-                    if (running() && events & EPOLLHUP && it->second.hangUp) {
-                        it->second.hangUp();
-                    }
-                }
+                handleEpollFilledEvent(events, data.fd);
             }
         }
         return m_exitCode;
+    }
+
+    void EventQueue::handleEpollFilledEvent(const uint32_t events, const int fd) {
+        // potentially a callback can modify m_fds, so we cannot fetch the member by a key once and use that for
+        // all callbacks in one run.
+        auto it = m_fds.find(fd);
+        if (it == m_fds.end()) {
+            // If there is no entry, we call no function and so, the entry cannot be present for the next
+            // event type.
+            return;
+        }
+
+        for (const auto& eventType : kEventTypes) {
+            if (!(events & eventType)) {
+                // We need to check the next event type, so continue
+                continue;
+            }
+            const auto& func = cbFunc(it->second, eventType);
+            if (!func) {
+                // No callback for the event type.
+                continue;
+            }
+
+            // Call the function for the triggered event type:
+            func();
+
+            // After the callback has been called, running could be changed.
+            if (!running()) {
+                return;
+            }
+
+            // Potentially m_fds could be modified by the called function.
+            it = m_fds.find(fd);
+            if (it == m_fds.end()) {
+                // If there is no entry, we call no function and so, the entry cannot be present for the next
+                // event type, so we could break here.
+                return;
+            }
+        }
     }
 
     void EventQueue::stop(int value) {
@@ -151,7 +194,7 @@ namespace suc::epl {
         if (!m_state.compare_exchange_strong(expected, State::Stopping)) {
             return;
         }
-        m_exitCode = value;
+        m_exitCode    = value;
         uint64_t incr = 1;
         write(*m_evtfd, &incr, sizeof(incr));
     }

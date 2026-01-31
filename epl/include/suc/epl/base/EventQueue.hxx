@@ -60,6 +60,8 @@ namespace suc::epl {
         void del(int fd);
 
     private:
+        void handleEpollFilledEvent(uint32_t events, int fd);
+
         enum class State {
             Idle, /**< event queue is not running because it has not been started (exec not been called) */
             Running, /**< event queue is running and no stop is triggered */
