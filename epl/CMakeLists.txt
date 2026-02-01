@@ -12,10 +12,14 @@ add_library(${NAME}
         include/suc/epl/base/InputFlags.hxx
         include/suc/epl/base/Fd.hxx
         src/base/Fd.cxx
-        include/suc/epl/common/Signal.hxx
-        src/common/Signal.cxx
-        include/suc/epl/common/Timer.hxx
-        src/common/Timer.cxx
+        include/suc/epl/common/EventFd.hxx
+        src/common/EventFd.cxx
+        include/suc/epl/common/SignalFd.hxx
+        src/common/SignalFd.cxx
+        include/suc/epl/common/ThreadSafeQueue.hxx
+        src/common/ThreadSafeQueue.cxx
+        include/suc/epl/common/TimerFd.hxx
+        src/common/TimerFd.cxx
 )
 
 target_include_directories(${NAME} PUBLIC

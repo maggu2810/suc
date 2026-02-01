@@ -15,20 +15,20 @@
 //
 // Created by maggu2810 on 1/18/26.
 //
-#ifndef SUC_EPL_TIMER_HXX
-#define SUC_EPL_TIMER_HXX
+#ifndef SUC_EPL_TIMERFD_HXX
+#define SUC_EPL_TIMERFD_HXX
 
 #include "suc/epl/base/Fd.hxx"
 #include <bits/types/struct_itimerspec.h>
 
 namespace suc::epl {
-    class Timer {
+    class TimerFd {
     public:
-        explicit Timer(EventQueue& eventQueue = EventQueue::coreInstance());
+        explicit TimerFd(EventQueue& eventQueue = EventQueue::coreInstance());
 
-        explicit Timer(std::function<void(uint64_t)> func, EventQueue& eventQueue = EventQueue::coreInstance());
+        explicit TimerFd(std::function<void(uint64_t)> func, EventQueue& eventQueue = EventQueue::coreInstance());
 
-        explicit Timer(const itimerspec& value, std::function<void(uint64_t)> func,
+        explicit TimerFd(const itimerspec& value, std::function<void(uint64_t)> func,
             EventQueue& eventQueue = EventQueue::coreInstance());
 
         void setTime(const itimerspec& value) const;
@@ -46,4 +46,4 @@ namespace suc::epl {
     };
 } // namespace suc::epl
 
-#endif // SUC_EPL_TIMER_HXX
+#endif // SUC_EPL_TIMERFD_HXX

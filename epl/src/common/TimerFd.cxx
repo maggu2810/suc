@@ -16,7 +16,7 @@
 // Created by maggu2810 on 1/18/26.
 //
 
-#include "suc/epl/common/Timer.hxx"
+#include "suc/epl/common/TimerFd.hxx"
 
 #include "../../../gpio/include/suc/gpio/event.hxx"
 #include <format>
@@ -28,36 +28,42 @@
 #include <utility>
 
 namespace suc::epl {
-    Timer::Timer(EventQueue& eventQueue)
+    TimerFd::TimerFd(EventQueue& eventQueue)
         : m_fd(Fd{
               suc::cmn::fd::make_or_rteeno(timerfd_create(CLOCK_MONOTONIC, TFD_NONBLOCK | TFD_CLOEXEC)), eventQueue}) {}
 
-    Timer::Timer(std::function<void(uint64_t)> func, EventQueue& eventQueue)
-        : Timer(eventQueue) {
+    TimerFd::TimerFd(std::function<void(uint64_t)> func, EventQueue& eventQueue)
+        : TimerFd(eventQueue) {
         onShot(std::move(func));
     }
 
-    Timer::Timer(const itimerspec& value, std::function<void(uint64_t)> func, EventQueue& eventQueue)
-        : Timer(std::move(func), eventQueue) {
+    TimerFd::TimerFd(const itimerspec& value, std::function<void(uint64_t)> func, EventQueue& eventQueue)
+        : TimerFd(std::move(func), eventQueue) {
         setTime(value);
     }
 
-    void Timer::setTime(const itimerspec& value) const {
+    void TimerFd::setTime(const itimerspec& value) const {
         lowLevelSetTime(value.it_value.tv_sec != 0 || value.it_value.tv_nsec != 0
                             ? value
                             : itimerspec{.it_interval = value.it_interval, .it_value = {0, 1}});
     }
 
-    void Timer::cancel() const {
+    void TimerFd::cancel() const {
         // If there are unread expirations, this will not lead to a read anymore and on a new set the expirations starts
         // from zero. So set time to zeroes is enough, we do not need to read the expirations.
         lowLevelSetTime({});
     }
 
-    void Timer::onShot(std::function<void(uint64_t)> func) const {
+    void TimerFd::onShot(std::function<void(uint64_t)> func) const {
+        if (!func) {
+            m_fd.onInputAvailable({});
+            return;
+        }
+
         m_fd.onInputAvailable([func = std::move(func), this]() { func(readNumberOfExpirations()); });
     }
-    std::uint64_t Timer::readNumberOfExpirations() const {
+
+    std::uint64_t TimerFd::readNumberOfExpirations() const {
         uint64_t numberOfExpirations;
         errno         = 0;
         const auto rv = ::read(m_fd, &numberOfExpirations, sizeof(numberOfExpirations));
@@ -70,7 +76,8 @@ namespace suc::epl {
             throw cmn::runtimeerror_errno(std::format("unexpected read return value: {}", rv), errnum);
         }
     }
-    void Timer::lowLevelSetTime(const itimerspec& value) const {
+
+    void TimerFd::lowLevelSetTime(const itimerspec& value) const {
         if (timerfd_settime(m_fd, 0, &value, nullptr) != 0) {
             throw cmn::runtimeerror_errno("timerfd_settime", errno);
         }

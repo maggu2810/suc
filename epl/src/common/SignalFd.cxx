@@ -16,13 +16,12 @@
 // Created by maggu2810 on 1/30/26.
 //
 
-#include "suc/epl/common/Signal.hxx"
-
 #include "suc/cmn/runtimeerror_errno.hxx"
+#include "suc/epl/common/SignalFd.hxx"
 #include <csignal>
 
 namespace suc::epl {
-    [[nodiscard]] sigset_t Signal::createSigSet(std::initializer_list<int> signals) {
+    [[nodiscard]] sigset_t SignalFd::createSigSet(std::initializer_list<int> signals) {
         sigset_t sigset;
         if (sigemptyset(&sigset) != 0) {
             throw suc::cmn::runtimeerror_errno("sigemptyset failed");
@@ -35,16 +34,21 @@ namespace suc::epl {
         return sigset;
     }
 
-    void Signal::blockSignals(const sigset_t& sigset) {
+    void SignalFd::blockSignals(const sigset_t& sigset) {
         if (sigprocmask(SIG_BLOCK, &sigset, nullptr) != 0) {
             throw suc::cmn::runtimeerror_errno("sigprocmask failed");
         }
     }
 
-    Signal::Signal(const sigset_t& sigset, EventQueue& eventQueue)
+    SignalFd::SignalFd(const sigset_t& sigset, EventQueue& eventQueue)
         : m_fd{suc::cmn::fd::make_or_rteeno(signalfd(-1, &sigset, SFD_NONBLOCK | SFD_CLOEXEC)), eventQueue} {}
 
-    void Signal::onSignal(std::function<void(signalfd_siginfo&&)> func) const {
+    void SignalFd::onSignal(std::function<void(signalfd_siginfo&&)> func) const {
+        if (!func) {
+            m_fd.onInputAvailable({});
+            return;
+        }
+
         m_fd.onInputAvailable([func = std::move(func), this]() {
             signalfd_siginfo info[32];
             const auto rv_read = read(m_fd, info, sizeof(info));

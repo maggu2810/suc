@@ -15,8 +15,8 @@
 //
 // Created by maggu2810 on 1/30/26.
 //
-#ifndef SUC_EPL_SIGNAL_HXX
-#define SUC_EPL_SIGNAL_HXX
+#ifndef SUC_EPL_SIGNALFD_HXX
+#define SUC_EPL_SIGNALFD_HXX
 
 #include "suc/epl/base/Fd.hxx"
 #include <functional>
@@ -27,25 +27,25 @@
 // signals: <bits/signum-arch.h>
 
 namespace suc::epl {
-    class Signal {
+    class SignalFd {
     private:
         [[nodiscard]] static sigset_t createSigSet(std::initializer_list<int> signals);
 
         static void blockSignals(const sigset_t& sigset);
 
-        explicit Signal(const sigset_t& sigset, EventQueue& eventQueue = EventQueue::coreInstance());
+        explicit SignalFd(const sigset_t& sigset, EventQueue& eventQueue = EventQueue::coreInstance());
 
-        explicit Signal(const sigset_t& sigset, bool block = true, EventQueue& eventQueue = EventQueue::coreInstance())
-            : Signal(sigset, eventQueue) {
+        explicit SignalFd(const sigset_t& sigset, bool block = true, EventQueue& eventQueue = EventQueue::coreInstance())
+            : SignalFd(sigset, eventQueue) {
             if (block) {
                 blockSignals(sigset);
             }
         }
 
     public:
-        explicit Signal(
+        explicit SignalFd(
             std::initializer_list<int> signals, bool block = true, EventQueue& eventQueue = EventQueue::coreInstance())
-            : Signal(createSigSet(signals), block, eventQueue) {}
+            : SignalFd(createSigSet(signals), block, eventQueue) {}
 
         void onSignal(std::function<void(signalfd_siginfo&&)> func) const;
 
@@ -54,4 +54,4 @@ namespace suc::epl {
     };
 } // namespace suc::epl
 
-#endif // SUC_EPL_SIGNAL_HXX
+#endif // SUC_EPL_SIGNALFD_HXX

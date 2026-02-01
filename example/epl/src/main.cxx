@@ -14,25 +14,34 @@
 
 #include <any>
 #include <chrono>
+#include <csignal>
 #include <fcntl.h>
 #include <iostream>
 #include <memory>
 #include <suc/cmn/runtimeerror_errno.hxx>
 #include <suc/epl/base/EventQueue.hxx>
 #include <suc/epl/base/Fd.hxx>
-#include <suc/epl/common/Signal.hxx>
-#include <suc/epl/common/Timer.hxx>
+#include <suc/epl/common/SignalFd.hxx>
+#include <suc/epl/common/ThreadSafeQueue.hxx>
+#include <suc/epl/common/TimerFd.hxx>
 #include <thread>
-#include <csignal>
 
 int main(int argc, char* argv[]) {
     suc::epl::EventQueue& eventQueue = suc::epl::EventQueue::coreInstance();
 
-    suc::epl::Signal signal {{SIGTERM}};
+    suc::epl::SignalFd signal{{SIGTERM}};
     signal.onSignal([&eventQueue](auto&& siginfo) {
         std::print(std::cout, "received signal: {}\n", siginfo.ssi_signo);
         eventQueue.stop();
     });
+
+    suc::epl::ThreadSafeQueue<std::unique_ptr<int>> queue;
+    queue.onElement([](auto ele) { std::print(std::cout, "{}\n", *ele); });
+    queue.enqueue(std::make_unique<int>(1));
+    auto u2 = std::make_unique<int>(2);
+    queue.enqueue(std::move(u2));
+    queue.enqueue(std::make_unique<int>(3));
+
 
 #if 0
     int p[2];
@@ -61,12 +70,12 @@ int main(int argc, char* argv[]) {
     });
 #endif
 
-    suc::epl::Timer timer{{{1, 0}, {}}, [](auto numberOfExpirations) {
-                              std::print(std::cout, "[{}] number of expirations: {}\n",
-                                  std::chrono::system_clock::now(), numberOfExpirations);
-                          }};
+    suc::epl::TimerFd timer{{{1, 0}, {}}, [](auto numberOfExpirations) {
+                                std::print(std::cout, "[{}] number of expirations: {}\n",
+                                    std::chrono::system_clock::now(), numberOfExpirations);
+                            }};
 
-    suc::epl::Timer timerShutdown{{{}, {10}}, [&](auto _) { eventQueue.stop(); }};
+    suc::epl::TimerFd timerShutdown{{{}, {10}}, [&](auto _) { eventQueue.stop(); }};
 
     std::print(std::cout, "[{}] start event loop\n", std::chrono::system_clock::now());
 
@@ -74,10 +83,10 @@ int main(int argc, char* argv[]) {
 
     std::map<void*, std::any> container;
     {
-        auto tmpTimer = std::make_shared<suc::epl::Timer>();
+        auto tmpTimer = std::make_shared<suc::epl::TimerFd>();
         container.emplace(tmpTimer.get(), tmpTimer);
-        tmpTimer->setTime({{},{1,0}});
-        tmpTimer->onShot([&container,&tmpTimer](auto _) {
+        tmpTimer->setTime({{}, {1, 0}});
+        tmpTimer->onShot([&container, &tmpTimer](auto _) {
             container.erase(tmpTimer.get());
             std::print(std::cout, "hello world\n");
         });
