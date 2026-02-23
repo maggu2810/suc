@@ -13,30 +13,29 @@
 // limitations under the License.
 
 #include <iostream>
-
-#include <suc/cmn/logging.hxx>
 #include <suc/cmn/endian.hxx>
+#include <suc/cmn/logging.hxx>
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
     std::uint32_t value = 0x12345678;
-    std::uint32_t le = suc::cmn::littleendian(value);
-    std::uint32_t be = suc::cmn::bigendian(value);
+    std::uint32_t le    = suc::cmn::convert<std::endian::little>(value);
+    std::uint32_t be    = suc::cmn::convert<std::endian::big>(value);
     std::cout << std::format("value: {:#x}, le: {:#x}, be: {:#x}\n", value, le, be);
 
     value = 0x89ABCDEF;
-    suc::cmn::littleendian<std::uint32_t>(&value, &le);
-    suc::cmn::bigendian<std::uint32_t>(&value, &be);
+    suc::cmn::convert<std::endian::little, std::uint32_t>(&value, &le);
+    suc::cmn::convert<std::endian::big, std::uint32_t>(&value, &be);
     std::cout << std::format("value: {:#x}, le: {:#x}, be: {:#x}\n", value, le, be);
 
     value = 0xDEADBEEF;
-    le = suc::cmn::littleendian<decltype(le)>(&value);
-    be = suc::cmn::bigendian<decltype(le)>(&value);
+    le    = suc::cmn::convert<std::endian::little, decltype(le)>(&value);
+    be    = suc::cmn::convert<std::endian::big, decltype(le)>(&value);
     std::cout << std::format("value: {:#x}, le: {:#x}, be: {:#x}\n", value, le, be);
 
-    value = 0xDEADBEEF;
-    const std::uint32_t le2 = suc::cmn::littleendian<std::decay_t<decltype(le2)>>(&value);
-    const auto le3 = suc::cmn::littleendian<std::uint32_t>(&value);
-    be = suc::cmn::bigendian<decltype(le)>(&value);
+    value                   = 0xDEADBEEF;
+    const std::uint32_t le2 = suc::cmn::convert<std::endian::little, std::decay_t<decltype(le2)>>(&value);
+    const auto le3          = suc::cmn::convert<std::endian::little, std::uint32_t>(&value);
+    be                      = suc::cmn::convert<std::endian::big, decltype(le)>(&value);
     std::cout << std::format("value: {:#x}, le2: {:#x}, le3: {:#x}\n", value, le2, le3);
 
     return EXIT_SUCCESS;

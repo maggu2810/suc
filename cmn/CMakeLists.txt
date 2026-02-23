@@ -7,12 +7,14 @@ set(NAME ${NAMESPACE}-${TARGET})
 project(${NAME})
 
 add_library(${NAME}
+        include/suc/cmn/ByteBuffer.hxx
         include/suc/cmn/cleanup.hxx
         include/suc/cmn/endian.hxx
         include/suc/cmn/logging.hxx
         include/suc/cmn/fd.hxx
         include/suc/cmn/overloaded.hxx
         include/suc/cmn/runtimeerror_errno.hxx
+        include/suc/cmn/StrictAliasing.hxx
         include/suc/cmn/to_string.hxx
         src/cleanup.cxx
         src/fd.cxx
