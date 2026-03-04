@@ -36,12 +36,12 @@ public:
     Fd(Fd&&)            = delete;
     Fd& operator=(Fd&&) = delete;
 
-    void onInputAvailable(std::function<void()> cb) const;
-    void onOutputPossible(std::function<void()> cb) const;
-    void onPriorityData(std::function<void()> cb) const;
-    void onReadSideHangUp(std::function<void()> cb) const;
-    void onHangUp(std::function<void()> cb) const;
-    void onError(std::function<void()> cb) const;
+    void onInputAvailable(std::function<void()>&& cb) const;
+    void onOutputPossible(std::function<void()>&& cb) const;
+    void onPriorityData(std::function<void()>&& cb) const;
+    void onReadSideHangUp(std::function<void()>&& cb) const;
+    void onHangUp(std::function<void()>&& cb) const;
+    void onError(std::function<void()>&& cb) const;
 
     [[nodiscard]] operator int() const
     {

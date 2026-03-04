@@ -66,7 +66,7 @@ void TimerFd::cancel() const
     lowLevelSetTime({});
 }
 
-void TimerFd::onShot(std::function<void(uint64_t)> func) const
+void TimerFd::onShot(std::function<void(uint64_t)>&& func) const
 {
     if (!func)
     {

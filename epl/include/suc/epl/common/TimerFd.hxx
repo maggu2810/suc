@@ -39,7 +39,7 @@ public:
 
     void cancel() const;
 
-    void onShot(std::function<void(uint64_t)> func) const;
+    void onShot(std::function<void(uint64_t)>&& func) const;
 
 private:
     [[nodiscard]] std::uint64_t readNumberOfExpirations() const;

@@ -34,7 +34,7 @@ EventFd::EventFd(const bool semaphore, EventQueue& eventQueue)
 {
 }
 
-void EventFd::onShot(std::function<void(std::uint64_t)> func) const
+void EventFd::onShot(std::function<void(std::uint64_t)>&& func) const
 {
     if (!func)
     {

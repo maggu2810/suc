@@ -40,7 +40,7 @@ public:
         m_eventFd.add(1);
     }
 
-    void onElement(std::function<void(T&&)> func)
+    void onElement(std::function<void(T&&)>&& func)
     {
         if (!func)
         {

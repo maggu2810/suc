@@ -66,7 +66,7 @@ constexpr const std::initializer_list<EPOLL_EVENTS> kEventTypes {EPOLLIN,
                                                                  EPOLLERR,
                                                                  EPOLLHUP};
 
-const std::function<void()>& cbFunc(const suc::epl::cb& cb, EPOLL_EVENTS eventType)
+const std::function<void()>& cbFunc(const suc::epl::Callbacks& cb, EPOLL_EVENTS eventType)
 {
     switch (eventType)
     {
@@ -88,7 +88,7 @@ const std::function<void()>& cbFunc(const suc::epl::cb& cb, EPOLL_EVENTS eventTy
     }
 }
 
-uint32_t calculateEvents(const suc::epl::cb& cb, const std::set<suc::epl::InputFlags>& iflags)
+uint32_t calculateEvents(const suc::epl::Callbacks& cb, const std::set<suc::epl::InputFlags>& iflags)
 {
     uint32_t events = (iflags.contains(suc::epl::InputFlags::EdgeTriggered) ? EPOLLET : 0U) |   //
                       (iflags.contains(suc::epl::InputFlags::OneShot) ? EPOLLONESHOT : 0U) |    //
@@ -124,7 +124,7 @@ EventQueue::EventQueue(Private)
       m_state {State::Idle}
 {
     auto [it, inserted] = m_fds.emplace(*m_evtfd,
-                                        cb {.inputAvailable = [&] -> void
+                                        Callbacks {.inputAvailable = [&] -> void
                                             {
                                                 // We do no special handling here. We just want to
                                                 // be sure to handle e.g. changed state variable.
@@ -238,14 +238,14 @@ bool EventQueue::running() const
     return m_state == State::Running;
 }
 
-void EventQueue::add(int fd, const std::function<void(cb&)>& reg)
+void EventQueue::add(int fd, const std::function<void(Callbacks&)>& reg)
 {
     if (m_fds.contains(fd))
     {
         throw std::runtime_error("file descriptor already added");
     }
 
-    auto [it, inserted] = m_fds.emplace(fd, cb {});
+    auto [it, inserted] = m_fds.emplace(fd, Callbacks {});
     if (!inserted)
     {
         throw std::runtime_error("adding file descriptor failed");
@@ -263,7 +263,7 @@ void EventQueue::add(int fd, const std::function<void(cb&)>& reg)
     }
 }
 
-void EventQueue::mod(const int fd, const std::function<void(cb&)>& reg)
+void EventQueue::mod(const int fd, const std::function<void(Callbacks&)>& reg)
 {
     if (!reg)
     {

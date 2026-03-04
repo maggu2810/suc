@@ -55,7 +55,7 @@ SignalFd::SignalFd(const sigset_t& sigset, EventQueue& eventQueue)
 {
 }
 
-void SignalFd::onSignal(std::function<void(signalfd_siginfo&&)> func) const
+void SignalFd::onSignal(std::function<void(signalfd_siginfo&&)>&& func) const
 {
     if (!func)
     {

@@ -56,7 +56,7 @@ public:
     {
     }
 
-    void onSignal(std::function<void(signalfd_siginfo&&)> func) const;
+    void onSignal(std::function<void(signalfd_siginfo&&)>&& func) const;
 
 private:
     Fd m_fd;

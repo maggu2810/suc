@@ -17,7 +17,6 @@ add_library(${NAME}
         include/suc/epl/common/SignalFd.hxx
         src/common/SignalFd.cxx
         include/suc/epl/common/ThreadSafeQueue.hxx
-        src/common/ThreadSafeQueue.cxx
         include/suc/epl/common/TimerFd.hxx
         src/common/TimerFd.cxx
 )

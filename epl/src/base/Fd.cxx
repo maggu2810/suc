@@ -18,7 +18,7 @@
 
 #include "suc/epl/base/Fd.hxx"
 
-#define EQ_MOD(MEMBER) m_eventQueue.mod(m_fd, [&](auto& cb) { cb.MEMBER = std::move(func); })
+#define EQ_MOD(MEMBER) m_eventQueue.mod(m_fd, [&](auto& callbacks) { callbacks.MEMBER = std::move(cb); })
 
 namespace suc::epl
 {
@@ -32,32 +32,32 @@ Fd::~Fd()
     m_eventQueue.del(m_fd);
 }
 
-void Fd::onInputAvailable(std::function<void()> func) const
+void Fd::onInputAvailable(std::function<void()>&& cb) const
 {
     EQ_MOD(inputAvailable);
 }
 
-void Fd::onOutputPossible(std::function<void()> func) const
+void Fd::onOutputPossible(std::function<void()>&& cb) const
 {
     EQ_MOD(outputPossible);
 }
 
-void Fd::onPriorityData(std::function<void()> func) const
+void Fd::onPriorityData(std::function<void()>&& cb) const
 {
     EQ_MOD(priorityData);
 }
 
-void Fd::onReadSideHangUp(std::function<void()> func) const
+void Fd::onReadSideHangUp(std::function<void()>&& cb) const
 {
     EQ_MOD(readSideHangUp);
 }
 
-void Fd::onHangUp(std::function<void()> func) const
+void Fd::onHangUp(std::function<void()>&& cb) const
 {
     EQ_MOD(hangUp);
 }
 
-void Fd::onError(std::function<void()> func) const
+void Fd::onError(std::function<void()>&& cb) const
 {
     EQ_MOD(errorOccurred);
 }

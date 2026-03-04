@@ -27,7 +27,7 @@ class EventFd
 public:
     explicit EventFd(bool semaphore = false, EventQueue& eventQueue = EventQueue::coreInstance());
 
-    void onShot(std::function<void(std::uint64_t)> func) const;
+    void onShot(std::function<void(std::uint64_t)>&& func) const;
 
     void add(std::uint64_t value) const;
 

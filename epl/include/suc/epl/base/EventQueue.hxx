@@ -26,7 +26,7 @@
 /* epoll */
 namespace suc::epl
 {
-struct cb
+struct Callbacks
 {
     std::function<void()>
         inputAvailable {}; /**< The associated file is available for read(2) operations. */
@@ -63,8 +63,8 @@ public:
 
     [[nodiscard]] bool running() const;
 
-    void add(int fd, const std::function<void(cb&)>& reg = {});
-    void mod(int fd, const std::function<void(cb&)>& reg);
+    void add(int fd, const std::function<void(Callbacks&)>& callbacks = {});
+    void mod(int fd, const std::function<void(Callbacks&)>& callbacks);
     void del(int fd);
 
 private:
@@ -80,11 +80,11 @@ private:
         Error     /**< event queue is not running because it of an error */
     };
 
-    cmn::Fd            m_epfd;
-    cmn::Fd            m_evtfd;
-    std::map<int, cb>  m_fds;
-    std::atomic<State> m_state;
-    std::atomic_int    m_exitCode {1};
+    cmn::Fd                  m_epfd;
+    cmn::Fd                  m_evtfd;
+    std::map<int, Callbacks> m_fds;
+    std::atomic<State>       m_state;
+    std::atomic_int          m_exitCode {1};
 };
 } // namespace suc::epl
 
