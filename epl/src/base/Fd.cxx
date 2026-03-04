@@ -15,9 +15,8 @@
 //
 // Created by maggu2810 on 11/4/25.
 //
-#include "../../include/suc/epl/base/Fd.hxx"
 
-#include "../../../gpio/include/suc/gpio/event.hxx"
+#include "suc/epl/base/Fd.hxx"
 
 #define EQ_MOD(MEMBER) m_eventQueue.mod(m_fd, [&](auto& cb) { cb.MEMBER = std::move(func); })
 
