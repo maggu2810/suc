@@ -19,14 +19,19 @@
 #include <suc/cmn/runtimeerror_errno.hxx>
 #include <sys/ioctl.h>
 
-namespace suc::gpio {
-    output::output(suc::cmn::Fd&& fd) : line(std::move(fd)) {}
+namespace suc::gpio
+{
+output::output(suc::cmn::Fd&& fd) : line(std::move(fd))
+{
+}
 
-    void output::set(bool active) const {
-        gpio_v2_line_values values{.bits = active ? 1ULL : 0ULL, .mask = 1};
+void output::set(bool active) const
+{
+    gpio_v2_line_values values {.bits = active ? 1ULL : 0ULL, .mask = 1};
 
-        if (ioctl(m_fd, GPIO_V2_LINE_SET_VALUES_IOCTL, &values) == -1) {
-            throw suc::cmn::runtimeerror_errno("set");
-        }
+    if (ioctl(m_fd, GPIO_V2_LINE_SET_VALUES_IOCTL, &values) == -1)
+    {
+        throw suc::cmn::runtimeerror_errno("set");
     }
+}
 } // namespace suc::gpio

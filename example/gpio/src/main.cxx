@@ -34,11 +34,12 @@ echo 1 > gpio-device/live
 
 #endif
 
-int main(int argc, char* argv[]) {
+int main(int argc, char* argv[])
+{
     suc::gpio::chip chip {0};
-    auto o7 = chip.get_output(7);
-    auto i8 = chip.get_input(8);
-    auto e9 = chip.get_event(9);
+    auto            o7 = chip.get_output(7);
+    auto            i8 = chip.get_input(8);
+    auto            e9 = chip.get_event(9);
     sleep(60);
     return EXIT_SUCCESS;
 }

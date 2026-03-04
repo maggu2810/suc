@@ -18,13 +18,18 @@
 #include <cstring>
 #include <format>
 
-namespace {
-    std::string genmsg(const std::string_view msg, const int errnum) {
-        return std::format("{} [{}]", msg, suc::cmn::strerrnum(errnum));
-    }
+namespace
+{
+std::string genmsg(const std::string_view msg, const int errnum)
+{
+    return std::format("{} [{}]", msg, suc::cmn::strerrnum(errnum));
+}
 } // namespace
 
-namespace suc::cmn {
-    runtimeerror_errno::runtimeerror_errno(const std::string_view msg, const int errnum)
-        : std::runtime_error{genmsg(msg, errnum)} {}
+namespace suc::cmn
+{
+runtimeerror_errno::runtimeerror_errno(const std::string_view msg, const int errnum)
+    : std::runtime_error {genmsg(msg, errnum)}
+{
+}
 } // namespace suc::cmn

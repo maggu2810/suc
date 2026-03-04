@@ -21,39 +21,46 @@
 
 #define EQ_MOD(MEMBER) m_eventQueue.mod(m_fd, [&](auto& cb) { cb.MEMBER = std::move(func); })
 
-namespace suc::epl {
-    Fd::Fd(cmn::Fd&& fd, EventQueue& eventQueue)
-        : m_fd(std::move(fd)),
-          m_eventQueue(eventQueue) {
-        m_eventQueue.add(m_fd);
-    }
+namespace suc::epl
+{
+Fd::Fd(cmn::Fd&& fd, EventQueue& eventQueue) : m_fd(std::move(fd)), m_eventQueue(eventQueue)
+{
+    m_eventQueue.add(m_fd);
+}
 
-    Fd::~Fd() {
-        m_eventQueue.del(m_fd);
-    }
+Fd::~Fd()
+{
+    m_eventQueue.del(m_fd);
+}
 
-    void Fd::onInputAvailable(std::function<void()> func) const {
-        EQ_MOD(inputAvailable);
-    }
+void Fd::onInputAvailable(std::function<void()> func) const
+{
+    EQ_MOD(inputAvailable);
+}
 
-    void Fd::onOutputPossible(std::function<void()> func) const {
-        EQ_MOD(outputPossible);
-    }
+void Fd::onOutputPossible(std::function<void()> func) const
+{
+    EQ_MOD(outputPossible);
+}
 
-    void Fd::onPriorityData(std::function<void()> func) const {
-        EQ_MOD(priorityData);
-    }
+void Fd::onPriorityData(std::function<void()> func) const
+{
+    EQ_MOD(priorityData);
+}
 
-    void Fd::onReadSideHangUp(std::function<void()> func) const {
-        EQ_MOD(readSideHangUp);
-    }
+void Fd::onReadSideHangUp(std::function<void()> func) const
+{
+    EQ_MOD(readSideHangUp);
+}
 
-    void Fd::onHangUp(std::function<void()> func) const {
-        EQ_MOD(hangUp);
-    }
+void Fd::onHangUp(std::function<void()> func) const
+{
+    EQ_MOD(hangUp);
+}
 
-    void Fd::onError(std::function<void()> func) const {
-        EQ_MOD(errorOccurred);
-    }
+void Fd::onError(std::function<void()> func) const
+{
+    EQ_MOD(errorOccurred);
+}
 
 } // namespace suc::epl

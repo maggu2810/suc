@@ -19,8 +19,9 @@
 #include <ifaddrs.h>
 #include <memory>
 
-namespace suc::net {
-    std::expected<std::shared_ptr<ifaddrs>, std::string> getifaddrs();
+namespace suc::net
+{
+std::expected<std::shared_ptr<ifaddrs>, std::string> getifaddrs();
 }
 
-#endif //SUC_NET_GETIFADDRS_HXX
+#endif // SUC_NET_GETIFADDRS_HXX

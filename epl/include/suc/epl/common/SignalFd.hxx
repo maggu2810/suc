@@ -26,32 +26,41 @@
 // signals: <bits/signum-generic.h>
 // signals: <bits/signum-arch.h>
 
-namespace suc::epl {
-    class SignalFd {
-    private:
-        [[nodiscard]] static sigset_t createSigSet(std::initializer_list<int> signals);
+namespace suc::epl
+{
+class SignalFd
+{
+private:
+    [[nodiscard]] static sigset_t createSigSet(std::initializer_list<int> signals);
 
-        static void blockSignals(const sigset_t& sigset);
+    static void blockSignals(const sigset_t& sigset);
 
-        explicit SignalFd(const sigset_t& sigset, EventQueue& eventQueue = EventQueue::coreInstance());
+    explicit SignalFd(const sigset_t& sigset, EventQueue& eventQueue = EventQueue::coreInstance());
 
-        explicit SignalFd(const sigset_t& sigset, bool block = true, EventQueue& eventQueue = EventQueue::coreInstance())
-            : SignalFd(sigset, eventQueue) {
-            if (block) {
-                blockSignals(sigset);
-            }
+    explicit SignalFd(const sigset_t& sigset,
+                      bool            block      = true,
+                      EventQueue&     eventQueue = EventQueue::coreInstance())
+        : SignalFd(sigset, eventQueue)
+    {
+        if (block)
+        {
+            blockSignals(sigset);
         }
+    }
 
-    public:
-        explicit SignalFd(
-            std::initializer_list<int> signals, bool block = true, EventQueue& eventQueue = EventQueue::coreInstance())
-            : SignalFd(createSigSet(signals), block, eventQueue) {}
+public:
+    explicit SignalFd(std::initializer_list<int> signals,
+                      bool                       block      = true,
+                      EventQueue&                eventQueue = EventQueue::coreInstance())
+        : SignalFd(createSigSet(signals), block, eventQueue)
+    {
+    }
 
-        void onSignal(std::function<void(signalfd_siginfo&&)> func) const;
+    void onSignal(std::function<void(signalfd_siginfo&&)> func) const;
 
-    private:
-        Fd m_fd;
-    };
+private:
+    Fd m_fd;
+};
 } // namespace suc::epl
 
 #endif // SUC_EPL_SIGNALFD_HXX

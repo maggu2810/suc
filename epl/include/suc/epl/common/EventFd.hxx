@@ -20,8 +20,10 @@
 
 #include "suc/epl/base/Fd.hxx"
 
-namespace suc::epl {
-class EventFd {
+namespace suc::epl
+{
+class EventFd
+{
 public:
     explicit EventFd(bool semaphore = false, EventQueue& eventQueue = EventQueue::coreInstance());
 
@@ -32,6 +34,6 @@ public:
 private:
     Fd m_fd;
 };
-}
+} // namespace suc::epl
 
 #endif // SUC_EPL_EVENTFD_HXX

@@ -14,11 +14,14 @@
 
 #include <suc/cmn/Cleanup.hxx>
 
-namespace suc::cmn {
-    Cleanup::Cleanup(std::function<void()> &&func) : m_func{std::move(func)} {
-    }
-
-    Cleanup::~Cleanup() {
-        m_func();
-    }
+namespace suc::cmn
+{
+Cleanup::Cleanup(std::function<void()>&& func) : m_func {std::move(func)}
+{
 }
+
+Cleanup::~Cleanup()
+{
+    m_func();
+}
+} // namespace suc::cmn

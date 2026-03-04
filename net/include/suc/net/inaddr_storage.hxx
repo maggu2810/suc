@@ -15,11 +15,12 @@
 #ifndef SUC_NET_INADDR_STORAGE_HXX
 #define SUC_NET_INADDR_STORAGE_HXX
 
-#include <variant>
 #include <netinet/in.h>
+#include <variant>
 
-namespace suc::net {
-    using inaddr_storage = std::variant<std::monostate, in_addr, in6_addr>;
+namespace suc::net
+{
+using inaddr_storage = std::variant<std::monostate, in_addr, in6_addr>;
 }
 
-#endif //SUC_NET_INADDR_STORAGE_HXX
+#endif // SUC_NET_INADDR_STORAGE_HXX

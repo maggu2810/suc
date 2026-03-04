@@ -17,11 +17,13 @@
 
 #include <stdexcept>
 
-namespace suc::cmn {
-    class runtimeerror_errno : public std::runtime_error {
-    public:
-        explicit runtimeerror_errno(std::string_view msg={}, int errnum = errno);
-    };
+namespace suc::cmn
+{
+class runtimeerror_errno : public std::runtime_error
+{
+public:
+    explicit runtimeerror_errno(std::string_view msg = {}, int errnum = errno);
+};
 } // namespace suc::cmn
 
 #endif // SUC_CMN_RUNTIMEERROR_ERRNO_HXX

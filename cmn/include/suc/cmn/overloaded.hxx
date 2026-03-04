@@ -15,11 +15,13 @@
 #ifndef SUC_CMN_OVERLOADED_HXX
 #define SUC_CMN_OVERLOADED_HXX
 
-namespace suc::cmn {
-    template<class... Ts>
-    struct overloaded : Ts... {
-        using Ts::operator()...;
-    };
-}
+namespace suc::cmn
+{
+template<class... Ts>
+struct overloaded : Ts...
+{
+    using Ts::operator()...;
+};
+} // namespace suc::cmn
 
-#endif //SUC_CMN_OVERLOADED_HXX
+#endif // SUC_CMN_OVERLOADED_HXX

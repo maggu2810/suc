@@ -24,29 +24,41 @@
 #include <suc/cmn/runtimeerror_errno.hxx>
 #include <unistd.h>
 
-namespace suc::gpio {
-    event::event(suc::cmn::Fd&& fd) : input(std::move(fd)) {}
+namespace suc::gpio
+{
+event::event(suc::cmn::Fd&& fd) : input(std::move(fd))
+{
+}
 
-    void event::poll_setup(pollfd& pfd) const {
-        pfd.fd      = m_fd;
-        pfd.events  = POLLIN;
-        pfd.revents = 0;
+void event::poll_setup(pollfd& pfd) const
+{
+    pfd.fd      = m_fd;
+    pfd.events  = POLLIN;
+    pfd.revents = 0;
+}
+
+void event::poll_inspect(pollfd& pfd, const edge_handler& handler) const
+{
+    if (pfd.revents & POLLIN)
+    {
+        gpio_v2_line_event event {};
+        if (read(m_fd, &event, sizeof(event)) != sizeof(event))
+        {
+            throw suc::cmn::runtimeerror_errno("read event");
+        };
+        handler(event.timestamp_ns,
+                [](const std::uint32_t id) -> edge
+                {
+                    if (id == GPIOEVENT_EVENT_RISING_EDGE)
+                    {
+                        return edge::rising;
+                    }
+                    if (id == GPIOEVENT_EVENT_FALLING_EDGE)
+                    {
+                        return edge::falling;
+                    }
+                    throw std::runtime_error("unknown edge event");
+                }(event.id));
     }
-    void event::poll_inspect(pollfd& pfd, const edge_handler& handler) const {
-        if (pfd.revents & POLLIN) {
-            gpio_v2_line_event event{};
-            if (read(m_fd, &event, sizeof(event)) != sizeof(event)) {
-                throw suc::cmn::runtimeerror_errno("read event");
-            };
-            handler(event.timestamp_ns, [](const std::uint32_t id) -> edge {
-                if (id == GPIOEVENT_EVENT_RISING_EDGE) {
-                    return edge::rising;
-                }
-                if (id == GPIOEVENT_EVENT_FALLING_EDGE) {
-                    return edge::falling;
-                }
-                throw std::runtime_error("unknown edge event");
-            }(event.id));
-        }
-    }
+}
 } // namespace suc::gpio

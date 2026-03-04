@@ -16,5 +16,6 @@
 // Created by maggu2810 on 2/1/26.
 //
 
-namespace suc::epl {
+namespace suc::epl
+{
 }

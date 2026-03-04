@@ -19,24 +19,31 @@
 
 #include <cstdint>
 #include <string>
-#include <utility>
-#include <sys/types.h>
 #include <sys/socket.h>
+#include <sys/types.h>
+#include <utility>
 
 #include "socket_type.hxx"
 
-namespace suc::net {
-    int create_bound_socket(socket_type socket_type, std::uint16_t port, bool non_blocking = false,
-                            bool reuse_addr = false);
+namespace suc::net
+{
+int create_bound_socket(socket_type   socket_type,
+                        std::uint16_t port,
+                        bool          non_blocking = false,
+                        bool          reuse_addr   = false);
 
-    int create_connected_socket(socket_type socket_type, const std::string &host, std::uint16_t port,
-                                bool non_blocking = false);
+int create_connected_socket(socket_type        socket_type,
+                            const std::string& host,
+                            std::uint16_t      port,
+                            bool               non_blocking = false);
 
-    std::pair<bool, bool> prepare_for_udp_receive(int sock);
+std::pair<bool, bool> prepare_for_udp_receive(int sock);
 
-    ssize_t udp_receive(int sockfd, void *buf, size_t len,
-                        inaddr_storage *host_addr,
-                        sockaddr_storage *peer_addr);
-}
+ssize_t udp_receive(int               sockfd,
+                    void*             buf,
+                    size_t            len,
+                    inaddr_storage*   host_addr,
+                    sockaddr_storage* peer_addr);
+} // namespace suc::net
 
-#endif //SUC_NET_SOCK_HXX
+#endif // SUC_NET_SOCK_HXX

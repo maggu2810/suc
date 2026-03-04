@@ -19,42 +19,57 @@
 #include <unistd.h>
 #include <utility>
 
-namespace suc::cmn {
-    Fd Fd::make_or_rteeno(int fd, std::string_view msg) {
-        if (fd < 0) {
-            throw runtimeerror_errno(msg, errno);
-        }
-        return {fd};
+namespace suc::cmn
+{
+Fd Fd::make_or_rteeno(int fd, std::string_view msg)
+{
+    if (fd < 0)
+    {
+        throw runtimeerror_errno(msg, errno);
     }
-    Fd Fd::make(int fd) {
-        if (fd < 0) {
-            throw std::runtime_error("not a valid file descriptor");
-        }
-        return {fd};
+    return {fd};
+}
+
+Fd Fd::make(int fd)
+{
+    if (fd < 0)
+    {
+        throw std::runtime_error("not a valid file descriptor");
     }
+    return {fd};
+}
 
-    Fd::Fd(int fd) : m_fd{fd} {}
+Fd::Fd(int fd) : m_fd {fd}
+{
+}
 
-    Fd::~Fd() {
-        if (m_fd >= 0) {
-            close(m_fd);
-            m_fd = -1;
-        }
+Fd::~Fd()
+{
+    if (m_fd >= 0)
+    {
+        close(m_fd);
+        m_fd = -1;
     }
+}
 
-    Fd::Fd(Fd&& other) noexcept : m_fd{std::exchange(other.m_fd, -1)} {}
+Fd::Fd(Fd&& other) noexcept : m_fd {std::exchange(other.m_fd, -1)}
+{
+}
 
-    Fd& Fd::operator=(Fd&& other) noexcept {
-        std::swap(m_fd, other.m_fd);
-        return *this;
-    }
+Fd& Fd::operator=(Fd&& other) noexcept
+{
+    std::swap(m_fd, other.m_fd);
+    return *this;
+}
 
-    const int& Fd::operator*() const {
-        return m_fd;
-    }
+const int& Fd::operator*() const
+{
+    return m_fd;
+}
 
-    Fd::operator int() const {
-        return m_fd;
-    }
+Fd::operator int() const
+{
+    return m_fd;
+}
 
 } // namespace suc::cmn

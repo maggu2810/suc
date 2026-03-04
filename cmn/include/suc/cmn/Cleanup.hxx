@@ -17,16 +17,18 @@
 
 #include <functional>
 
-namespace suc::cmn {
-    class Cleanup {
-    public:
-        explicit Cleanup(std::function<void()> &&func);
+namespace suc::cmn
+{
+class Cleanup
+{
+public:
+    explicit Cleanup(std::function<void()>&& func);
 
-        ~Cleanup();
+    ~Cleanup();
 
-    private:
-        std::function<void()> m_func;
-    };
-}
+private:
+    std::function<void()> m_func;
+};
+} // namespace suc::cmn
 
-#endif //SUC_CMN_CLEANUP_HXX
+#endif // SUC_CMN_CLEANUP_HXX

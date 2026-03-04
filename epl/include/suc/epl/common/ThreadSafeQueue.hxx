@@ -22,50 +22,62 @@
 #include <deque>
 #include <mutex>
 
-namespace suc::epl {
-    template <class T>
-    class ThreadSafeQueue {
-    public:
-        explicit ThreadSafeQueue(EventQueue& eventQueue = EventQueue::coreInstance())
-            : m_eventFd(false, eventQueue) {}
+namespace suc::epl
+{
+template<class T>
+class ThreadSafeQueue
+{
+public:
+    explicit ThreadSafeQueue(EventQueue& eventQueue = EventQueue::coreInstance())
+        : m_eventFd(false, eventQueue)
+    {
+    }
 
-        void enqueue(T&& ele) {
-            std::lock_guard lock(m_mutex);
-            m_deque.push_back(std::move(ele));
-            m_eventFd.add(1);
+    void enqueue(T&& ele)
+    {
+        std::lock_guard lock(m_mutex);
+        m_deque.push_back(std::move(ele));
+        m_eventFd.add(1);
+    }
+
+    void onElement(std::function<void(T&&)> func)
+    {
+        if (!func)
+        {
+            m_eventFd.onShot({});
+            return;
         }
 
-        void onElement(std::function<void(T&&)> func) {
-            if (!func) {
-                m_eventFd.onShot({});
-                return;
-            }
-
-            m_eventFd.onShot([func = std::move(func), this](std::uint64_t value) {
-                for (std::uint64_t i = value; i > 0; --i) {
+        m_eventFd.onShot(
+            [func = std::move(func), this](std::uint64_t value)
+            {
+                for (std::uint64_t i = value; i > 0; --i)
+                {
                     func(dequeue());
                 }
             });
-        }
+    }
 
-    private:
-        [[nodiscard]] T dequeue() {
-            std::lock_guard lock(m_mutex);
-            T ele{std::move(m_deque.front())};
-            m_deque.pop_front();
-            return ele;
-        }
+private:
+    [[nodiscard]] T dequeue()
+    {
+        std::lock_guard lock(m_mutex);
+        T               ele {std::move(m_deque.front())};
+        m_deque.pop_front();
+        return ele;
+    }
 
-        [[nodiscard]] bool empty() const {
-            std::lock_guard lock(m_mutex);
-            return m_deque.empty();
-        }
+    [[nodiscard]] bool empty() const
+    {
+        std::lock_guard lock(m_mutex);
+        return m_deque.empty();
+    }
 
-    private:
-        EventFd m_eventFd;
-        mutable std::mutex m_mutex;
-        std::deque<T> m_deque;
-    };
+private:
+    EventFd            m_eventFd;
+    mutable std::mutex m_mutex;
+    std::deque<T>      m_deque;
+};
 } // namespace suc::epl
 
 #endif // SUC_EPL_THREADSAFEQUEUE_HXX

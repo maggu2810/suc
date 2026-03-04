@@ -17,13 +17,15 @@
 #include <cstring>
 #include <format>
 
-namespace suc::cmn {
-    std::string strerrnum(int errnum) {
+namespace suc::cmn
+{
+std::string strerrnum(int errnum)
+{
 #if 0
         char buffer[128];
         const char *str = ::strerror_r(errnum, buffer, sizeof(buffer));
         return std::format("[{}] {}", errnum, str);
 #endif
-        return std::format("{} ({}): {}", strerrorname_np(errnum), errnum, strerrordesc_np(errnum));
-    }
+    return std::format("{} ({}): {}", strerrorname_np(errnum), errnum, strerrordesc_np(errnum));
 }
+} // namespace suc::cmn

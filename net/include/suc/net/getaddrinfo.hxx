@@ -19,10 +19,11 @@
 #include <memory>
 #include <netdb.h>
 
-namespace suc::net {
-    std::expected<std::shared_ptr<addrinfo>, const char *> getaddrinfo(const char *node,
-                                                                       const char *service,
-                                                                       const addrinfo &hints);
+namespace suc::net
+{
+std::expected<std::shared_ptr<addrinfo>, const char*> getaddrinfo(const char*     node,
+                                                                  const char*     service,
+                                                                  const addrinfo& hints);
 }
 
-#endif //SUC_NET_GETADDRINFO_HXX
+#endif // SUC_NET_GETADDRINFO_HXX

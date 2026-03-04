@@ -21,29 +21,33 @@
 #include "suc/epl/base/Fd.hxx"
 #include <bits/types/struct_itimerspec.h>
 
-namespace suc::epl {
-    class TimerFd {
-    public:
-        explicit TimerFd(EventQueue& eventQueue = EventQueue::coreInstance());
+namespace suc::epl
+{
+class TimerFd
+{
+public:
+    explicit TimerFd(EventQueue& eventQueue = EventQueue::coreInstance());
 
-        explicit TimerFd(std::function<void(uint64_t)> func, EventQueue& eventQueue = EventQueue::coreInstance());
+    explicit TimerFd(std::function<void(uint64_t)> func,
+                     EventQueue&                   eventQueue = EventQueue::coreInstance());
 
-        explicit TimerFd(const itimerspec& value, std::function<void(uint64_t)> func,
-            EventQueue& eventQueue = EventQueue::coreInstance());
+    explicit TimerFd(const itimerspec&             value,
+                     std::function<void(uint64_t)> func,
+                     EventQueue&                   eventQueue = EventQueue::coreInstance());
 
-        void setTime(const itimerspec& value) const;
+    void setTime(const itimerspec& value) const;
 
-        void cancel() const;
+    void cancel() const;
 
-        void onShot(std::function<void(uint64_t)> func) const;
+    void onShot(std::function<void(uint64_t)> func) const;
 
-    private:
-        [[nodiscard]] std::uint64_t readNumberOfExpirations() const;
-        void lowLevelSetTime(const itimerspec& value) const;
+private:
+    [[nodiscard]] std::uint64_t readNumberOfExpirations() const;
+    void                        lowLevelSetTime(const itimerspec& value) const;
 
-    private:
-        Fd m_fd;
-    };
+private:
+    Fd m_fd;
+};
 } // namespace suc::epl
 
 #endif // SUC_EPL_TIMERFD_HXX

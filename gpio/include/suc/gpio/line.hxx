@@ -17,14 +17,16 @@
 
 #include <suc/cmn/Fd.hxx>
 
-namespace suc::gpio {
-    class line {
-    public:
-        explicit line(suc::cmn::Fd&& fd);
+namespace suc::gpio
+{
+class line
+{
+public:
+    explicit line(suc::cmn::Fd&& fd);
 
-    protected:
-        suc::cmn::Fd m_fd;
-    };
+protected:
+    suc::cmn::Fd m_fd;
+};
 } // namespace suc::gpio
 
 #endif // SUC_GPIO_LINE_HXX

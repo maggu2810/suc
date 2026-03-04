@@ -21,19 +21,25 @@
 #include <functional>
 #include <poll.h>
 
-namespace suc::gpio {
-    class event : protected input {
-    public:
-        enum class edge { rising, falling };
-
-        explicit event(suc::cmn::Fd&& fd);
-        using input::get;
-
-        void poll_setup(pollfd& pfd) const;
-
-        using edge_handler = std::function<void(std::uint64_t ts_mon_ns, edge event)>;
-        void poll_inspect(pollfd& pfd, const edge_handler& handler) const;
+namespace suc::gpio
+{
+class event : protected input
+{
+public:
+    enum class edge
+    {
+        rising,
+        falling
     };
+
+    explicit event(suc::cmn::Fd&& fd);
+    using input::get;
+
+    void poll_setup(pollfd& pfd) const;
+
+    using edge_handler = std::function<void(std::uint64_t ts_mon_ns, edge event)>;
+    void poll_inspect(pollfd& pfd, const edge_handler& handler) const;
+};
 } // namespace suc::gpio
 
 #endif // SUC_GPIO_EVENT_HXX

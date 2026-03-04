@@ -19,26 +19,30 @@
 
 #include <string>
 
-namespace suc::net {
-    std::string to_string(const inaddr_storage &address);
+namespace suc::net
+{
+std::string to_string(const inaddr_storage& address);
 
-    std::string to_string(const in_addr &address);
+std::string to_string(const in_addr& address);
 
-    std::string to_string(const in6_addr &address);
+std::string to_string(const in6_addr& address);
 
-    std::string to_string(const sockaddr &sa, socklen_t addrlen);
+std::string to_string(const sockaddr& sa, socklen_t addrlen);
 
-    inline std::string to_string(const sockaddr_storage &sa) {
-        return to_string(reinterpret_cast<const sockaddr &>(sa), sizeof(sa));
-    }
-
-    inline std::string to_string(const sockaddr_in &sa) {
-        return to_string(reinterpret_cast<const sockaddr &>(sa), sizeof(sa));
-    }
-
-    inline std::string to_string(const sockaddr_in6 &sa) {
-        return to_string(reinterpret_cast<const sockaddr &>(sa), sizeof(sa));
-    }
+inline std::string to_string(const sockaddr_storage& sa)
+{
+    return to_string(reinterpret_cast<const sockaddr&>(sa), sizeof(sa));
 }
 
-#endif //SUC_NET_TO_STRING_HXX
+inline std::string to_string(const sockaddr_in& sa)
+{
+    return to_string(reinterpret_cast<const sockaddr&>(sa), sizeof(sa));
+}
+
+inline std::string to_string(const sockaddr_in6& sa)
+{
+    return to_string(reinterpret_cast<const sockaddr&>(sa), sizeof(sa));
+}
+} // namespace suc::net
+
+#endif // SUC_NET_TO_STRING_HXX

@@ -21,12 +21,14 @@
 #include <concepts>
 #include <cstddef>
 
-namespace utils {
-    // Define a concept for the types that pointer can hold other pointers without breaking strict
-    // aliasing.
-    template <typename T>
-    concept StrictAliasCharTypes = std::same_as<std::decay_t<T>, char> || std::same_as<std::decay_t<T>, unsigned char>
-                                || std::same_as<std::decay_t<T>, std::byte>;
+namespace utils
+{
+// Define a concept for the types that pointer can hold other pointers without breaking strict
+// aliasing.
+template<typename T>
+concept StrictAliasCharTypes =
+    std::same_as<std::decay_t<T>, char> || std::same_as<std::decay_t<T>, unsigned char> ||
+    std::same_as<std::decay_t<T>, std::byte>;
 } // namespace utils
 
 #endif // SUC_CMN_STRICTALIASING_HXX

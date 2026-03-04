@@ -17,13 +17,15 @@
 
 #include "line.hxx"
 
-namespace suc::gpio {
-    class input : protected line {
-    public:
-        explicit input(suc::cmn::Fd&& fd);
+namespace suc::gpio
+{
+class input : protected line
+{
+public:
+    explicit input(suc::cmn::Fd&& fd);
 
-        [[nodiscard]] bool get() const;
-    };
+    [[nodiscard]] bool get() const;
+};
 } // namespace suc::gpio
 
 #endif // SUC_GPIO_INPUT_HXX

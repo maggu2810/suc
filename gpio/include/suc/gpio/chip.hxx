@@ -23,30 +23,35 @@
 #include <string>
 #include <suc/cmn/Fd.hxx>
 
-namespace suc::gpio {
-    struct line_args {
-        std::string_view consumer;
-        bool active_low{false};
-    };
+namespace suc::gpio
+{
+struct line_args
+{
+    std::string_view consumer;
+    bool             active_low {false};
+};
 
-    struct input_line_args {
-        std::optional<std::uint32_t> debounce_period_us{};
-    };
+struct input_line_args
+{
+    std::optional<std::uint32_t> debounce_period_us {};
+};
 
-    class chip {
-    public:
-        explicit chip(int chip_number);
+class chip
+{
+public:
+    explicit chip(int chip_number);
 
-        [[nodiscard]] input get_input(
-            std::uint32_t line, const line_args& line_args = {}, const input_line_args& input_line_args = {}) const;
-        [[nodiscard]] event get_event(
-            std::uint32_t line, const line_args& line_args = {}, const input_line_args& input_line_args = {}) const;
-        [[nodiscard]] output get_output(std::uint32_t line, const line_args& line_args = {}) const;
+    [[nodiscard]] input  get_input(std::uint32_t          line,
+                                   const line_args&       line_args       = {},
+                                   const input_line_args& input_line_args = {}) const;
+    [[nodiscard]] event  get_event(std::uint32_t          line,
+                                   const line_args&       line_args       = {},
+                                   const input_line_args& input_line_args = {}) const;
+    [[nodiscard]] output get_output(std::uint32_t line, const line_args& line_args = {}) const;
 
-    private:
-        suc::cmn::Fd m_fd;
-    };
+private:
+    suc::cmn::Fd m_fd;
+};
 } // namespace suc::gpio
-
 
 #endif // SUC_GPIO_CHIP_HXX

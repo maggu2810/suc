@@ -15,10 +15,13 @@
 #ifndef SUC_NET_SOCKET_TYPE_HXX
 #define SUC_NET_SOCKET_TYPE_HXX
 
-namespace suc::net {
-    enum class socket_type {
-        tcp, udp
-    };
-}
+namespace suc::net
+{
+enum class socket_type
+{
+    tcp,
+    udp
+};
+} // namespace suc::net
 
-#endif //SUC_NET_SOCKET_TYPE_HXX
+#endif // SUC_NET_SOCKET_TYPE_HXX

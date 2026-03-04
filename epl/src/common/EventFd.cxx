@@ -22,33 +22,43 @@
 #include <format>
 #include <sys/eventfd.h>
 
-namespace suc::epl {
-    EventFd::EventFd(const bool semaphore, EventQueue& eventQueue)
-        : m_fd(Fd{suc::cmn::Fd::make_or_rteeno(
-                      eventfd(0, EFD_CLOEXEC | EFD_NONBLOCK | (semaphore ? EFD_SEMAPHORE : 0))),
-              eventQueue}) {}
+namespace suc::epl
+{
+EventFd::EventFd(const bool semaphore, EventQueue& eventQueue)
+    : m_fd(Fd {suc::cmn::Fd::make_or_rteeno(
+                   eventfd(0, EFD_CLOEXEC | EFD_NONBLOCK | (semaphore ? EFD_SEMAPHORE : 0))),
+               eventQueue})
+{
+}
 
-    void EventFd::onShot(std::function<void(std::uint64_t)> func) const {
-        if (!func) {
-            m_fd.onInputAvailable({});
-            return;
-        }
+void EventFd::onShot(std::function<void(std::uint64_t)> func) const
+{
+    if (!func)
+    {
+        m_fd.onInputAvailable({});
+        return;
+    }
 
-        m_fd.onInputAvailable([func = std::move(func), this]() {
+    m_fd.onInputAvailable(
+        [func = std::move(func), this]()
+        {
             std::uint64_t value;
-            const auto rvRead = ::read(m_fd, &value, sizeof(value));
-            if (rvRead != sizeof(value)) {
+            const auto    rvRead = ::read(m_fd, &value, sizeof(value));
+            if (rvRead != sizeof(value))
+            {
                 throw cmn::runtimeerror_errno(std::format("unexpected read rv: {}", rvRead));
             }
             func(value);
         });
-    }
+}
 
-    void EventFd::add(const std::uint64_t value) const {
-        const auto rvWrite = ::write(m_fd, &value, sizeof(value));
-        if (rvWrite != sizeof(value)) {
-            throw cmn::runtimeerror_errno(std::format("unexpected write rv: {}", rvWrite));
-        }
+void EventFd::add(const std::uint64_t value) const
+{
+    const auto rvWrite = ::write(m_fd, &value, sizeof(value));
+    if (rvWrite != sizeof(value))
+    {
+        throw cmn::runtimeerror_errno(std::format("unexpected write rv: {}", rvWrite));
     }
+}
 
 } // namespace suc::epl

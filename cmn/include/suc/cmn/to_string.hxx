@@ -17,8 +17,9 @@
 
 #include <string>
 
-namespace suc::cmn {
-    std::string strerrnum(int errnum);
+namespace suc::cmn
+{
+std::string strerrnum(int errnum);
 }
 
-#endif //SUC_CMN_TO_STRING_HXX
+#endif // SUC_CMN_TO_STRING_HXX

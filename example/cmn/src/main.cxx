@@ -16,7 +16,8 @@
 #include <suc/cmn/endian.hxx>
 #include <suc/cmn/logging.hxx>
 
-int main(int argc, char* argv[]) {
+int main(int argc, char* argv[])
+{
     std::uint32_t value = 0x12345678;
     std::uint32_t le    = suc::cmn::convert<std::endian::little>(value);
     std::uint32_t be    = suc::cmn::convert<std::endian::big>(value);
@@ -32,10 +33,11 @@ int main(int argc, char* argv[]) {
     be    = suc::cmn::convert<std::endian::big, decltype(le)>(&value);
     std::cout << std::format("value: {:#x}, le: {:#x}, be: {:#x}\n", value, le, be);
 
-    value                   = 0xDEADBEEF;
-    const std::uint32_t le2 = suc::cmn::convert<std::endian::little, std::decay_t<decltype(le2)>>(&value);
-    const auto le3          = suc::cmn::convert<std::endian::little, std::uint32_t>(&value);
-    be                      = suc::cmn::convert<std::endian::big, decltype(le)>(&value);
+    value = 0xDEADBEEF;
+    const std::uint32_t le2 =
+        suc::cmn::convert<std::endian::little, std::decay_t<decltype(le2)>>(&value);
+    const auto le3 = suc::cmn::convert<std::endian::little, std::uint32_t>(&value);
+    be             = suc::cmn::convert<std::endian::big, decltype(le)>(&value);
     std::cout << std::format("value: {:#x}, le2: {:#x}, le3: {:#x}\n", value, le2, le3);
 
     return EXIT_SUCCESS;

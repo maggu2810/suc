@@ -17,30 +17,32 @@
 
 #include <string_view>
 
-namespace suc::cmn {
-    class Fd {
-    public:
-        static Fd make_or_rteeno(int fd, std::string_view msg={});
-        static Fd make(int fd);
+namespace suc::cmn
+{
+class Fd
+{
+public:
+    static Fd make_or_rteeno(int fd, std::string_view msg = {});
+    static Fd make(int fd);
 
-    private:
-        Fd(int fd);
+private:
+    Fd(int fd);
 
-    public:
-        ~Fd();
+public:
+    ~Fd();
 
-        Fd(const Fd&)            = delete;
-        Fd& operator=(const Fd&) = delete;
+    Fd(const Fd&)            = delete;
+    Fd& operator=(const Fd&) = delete;
 
-        Fd(Fd&&) noexcept;
-        Fd& operator=(Fd&&) noexcept;
+    Fd(Fd&&) noexcept;
+    Fd& operator=(Fd&&) noexcept;
 
-        [[nodiscard]] const int& operator*() const;
-        [[nodiscard]] operator int() const;
+    [[nodiscard]] const int& operator*() const;
+    [[nodiscard]]            operator int() const;
 
-    private:
-        int m_fd{-1};
-    };
+private:
+    int m_fd {-1};
+};
 } // namespace suc::cmn
 
 #endif // SUC_CMN_FD_HXX

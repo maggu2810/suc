@@ -22,33 +22,36 @@
 #include <functional>
 #include <suc/cmn/Fd.hxx>
 
-namespace suc::epl {
-    class Fd {
-    public:
-        explicit Fd(cmn::Fd&& fd, EventQueue& eventQueue = EventQueue::coreInstance());
-        ~Fd();
+namespace suc::epl
+{
+class Fd
+{
+public:
+    explicit Fd(cmn::Fd&& fd, EventQueue& eventQueue = EventQueue::coreInstance());
+    ~Fd();
 
-        Fd(const Fd&)            = delete;
-        Fd& operator=(const Fd&) = delete;
+    Fd(const Fd&)            = delete;
+    Fd& operator=(const Fd&) = delete;
 
-        Fd(Fd&&)            = delete;
-        Fd& operator=(Fd&&) = delete;
+    Fd(Fd&&)            = delete;
+    Fd& operator=(Fd&&) = delete;
 
-        void onInputAvailable(std::function<void()> cb) const;
-        void onOutputPossible(std::function<void()> cb) const;
-        void onPriorityData(std::function<void()> cb) const;
-        void onReadSideHangUp(std::function<void()> cb) const;
-        void onHangUp(std::function<void()> cb) const;
-        void onError(std::function<void()> cb) const;
+    void onInputAvailable(std::function<void()> cb) const;
+    void onOutputPossible(std::function<void()> cb) const;
+    void onPriorityData(std::function<void()> cb) const;
+    void onReadSideHangUp(std::function<void()> cb) const;
+    void onHangUp(std::function<void()> cb) const;
+    void onError(std::function<void()> cb) const;
 
-        [[nodiscard]] operator int() const {
-            return m_fd;
-        }
+    [[nodiscard]] operator int() const
+    {
+        return m_fd;
+    }
 
-    private:
-        cmn::Fd m_fd;
-        EventQueue& m_eventQueue;
-    };
+private:
+    cmn::Fd     m_fd;
+    EventQueue& m_eventQueue;
+};
 } // namespace suc::epl
 
 #endif // SUC_EPL_FD_HXX
