@@ -22,7 +22,7 @@
 #define EQ_MOD(MEMBER) m_eventQueue.mod(m_fd, [&](auto& cb) { cb.MEMBER = std::move(func); })
 
 namespace suc::epl {
-    Fd::Fd(cmn::fd&& fd, EventQueue& eventQueue)
+    Fd::Fd(cmn::Fd&& fd, EventQueue& eventQueue)
         : m_fd(std::move(fd)),
           m_eventQueue(eventQueue) {
         m_eventQueue.add(m_fd);

@@ -21,7 +21,7 @@
 #include <cstdint>
 #include <optional>
 #include <string>
-#include <suc/cmn/fd.hxx>
+#include <suc/cmn/Fd.hxx>
 
 namespace suc::gpio {
     struct line_args {
@@ -44,7 +44,7 @@ namespace suc::gpio {
         [[nodiscard]] output get_output(std::uint32_t line, const line_args& line_args = {}) const;
 
     private:
-        suc::cmn::fd m_fd;
+        suc::cmn::Fd m_fd;
     };
 } // namespace suc::gpio
 

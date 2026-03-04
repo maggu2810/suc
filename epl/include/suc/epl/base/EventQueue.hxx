@@ -18,7 +18,7 @@
 #ifndef SUC_EPL_EVENTQUEUE_HXX
 #define SUC_EPL_EVENTQUEUE_HXX
 
-#include "suc/cmn/fd.hxx"
+#include "suc/cmn/Fd.hxx"
 #include <atomic>
 #include <functional>
 #include <map>
@@ -70,8 +70,8 @@ namespace suc::epl {
             Error /**< event queue is not running because it of an error */
         };
 
-        cmn::fd m_epfd;
-        cmn::fd m_evtfd;
+        cmn::Fd m_epfd;
+        cmn::Fd m_evtfd;
         std::map<int, cb> m_fds;
         std::atomic<State> m_state;
         std::atomic_int m_exitCode{1};

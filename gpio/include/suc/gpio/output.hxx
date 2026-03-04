@@ -20,7 +20,7 @@
 namespace suc::gpio {
     class output : protected line {
     public:
-        explicit output(suc::cmn::fd&& fd);
+        explicit output(suc::cmn::Fd&& fd);
 
         void set(bool active) const;
     };

@@ -41,7 +41,7 @@ namespace suc::epl {
     }
 
     SignalFd::SignalFd(const sigset_t& sigset, EventQueue& eventQueue)
-        : m_fd{suc::cmn::fd::make_or_rteeno(signalfd(-1, &sigset, SFD_NONBLOCK | SFD_CLOEXEC)), eventQueue} {}
+        : m_fd{suc::cmn::Fd::make_or_rteeno(signalfd(-1, &sigset, SFD_NONBLOCK | SFD_CLOEXEC)), eventQueue} {}
 
     void SignalFd::onSignal(std::function<void(signalfd_siginfo&&)> func) const {
         if (!func) {

@@ -49,8 +49,8 @@ int main(int argc, char* argv[]) {
         throw suc::cmn::runtimeerror_errno("pipe2 failed");
     }
 
-    suc::epl::Fd testfd0{suc::cmn::fd::make(p[0]), eventQueue};
-    suc::epl::Fd testfd1{suc::cmn::fd::make(p[1]), eventQueue};
+    suc::epl::Fd testfd0{suc::cmn::Fd::make(p[0]), eventQueue};
+    suc::epl::Fd testfd1{suc::cmn::Fd::make(p[1]), eventQueue};
 
     int cnt = 0;
 

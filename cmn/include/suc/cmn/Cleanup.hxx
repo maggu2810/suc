@@ -1,4 +1,4 @@
-// Copyright [2025] [maggu2810]
+// Copyright [2024-2025] [maggu2810]
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,35 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef SUC_CMN_FD_HXX
-#define SUC_CMN_FD_HXX
+#ifndef SUC_CMN_CLEANUP_HXX
+#define SUC_CMN_CLEANUP_HXX
 
-#include <string_view>
+#include <functional>
 
 namespace suc::cmn {
-    class fd {
+    class Cleanup {
     public:
-        static fd make_or_rteeno(int fd, std::string_view msg={});
-        static fd make(int fd);
+        explicit Cleanup(std::function<void()> &&func);
+
+        ~Cleanup();
 
     private:
-        fd(int fd);
-
-    public:
-        ~fd();
-
-        fd(const fd&)            = delete;
-        fd& operator=(const fd&) = delete;
-
-        fd(fd&&) noexcept;
-        fd& operator=(fd&&) noexcept;
-
-        [[nodiscard]] const int& operator*() const;
-        [[nodiscard]] operator int() const;
-
-    private:
-        int m_fd{-1};
+        std::function<void()> m_func;
     };
-} // namespace suc::cmn
+}
 
-#endif // SUC_CMN_FD_HXX
+#endif //SUC_CMN_CLEANUP_HXX

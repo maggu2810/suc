@@ -30,7 +30,7 @@
 namespace suc::epl {
     TimerFd::TimerFd(EventQueue& eventQueue)
         : m_fd(Fd{
-              suc::cmn::fd::make_or_rteeno(timerfd_create(CLOCK_MONOTONIC, TFD_NONBLOCK | TFD_CLOEXEC)), eventQueue}) {}
+              suc::cmn::Fd::make_or_rteeno(timerfd_create(CLOCK_MONOTONIC, TFD_NONBLOCK | TFD_CLOEXEC)), eventQueue}) {}
 
     TimerFd::TimerFd(std::function<void(uint64_t)> func, EventQueue& eventQueue)
         : TimerFd(eventQueue) {

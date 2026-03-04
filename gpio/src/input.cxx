@@ -20,7 +20,7 @@
 #include <sys/ioctl.h>
 
 namespace suc::gpio {
-    input::input(suc::cmn::fd&& fd) : line(std::move(fd)) {}
+    input::input(suc::cmn::Fd&& fd) : line(std::move(fd)) {}
 
     bool input::get() const {
         gpio_v2_line_values values{.bits = 0ULL, .mask = 1};

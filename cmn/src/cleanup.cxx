@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <suc/cmn/cleanup.hxx>
+#include <suc/cmn/Cleanup.hxx>
 
 namespace suc::cmn {
-    cleanup::cleanup(std::function<void()> &&func) : m_func{std::move(func)} {
+    Cleanup::Cleanup(std::function<void()> &&func) : m_func{std::move(func)} {
     }
 
-    cleanup::~cleanup() {
+    Cleanup::~Cleanup() {
         m_func();
     }
 }

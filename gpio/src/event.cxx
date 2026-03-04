@@ -25,7 +25,7 @@
 #include <unistd.h>
 
 namespace suc::gpio {
-    event::event(suc::cmn::fd&& fd) : input(std::move(fd)) {}
+    event::event(suc::cmn::Fd&& fd) : input(std::move(fd)) {}
 
     void event::poll_setup(pollfd& pfd) const {
         pfd.fd      = m_fd;

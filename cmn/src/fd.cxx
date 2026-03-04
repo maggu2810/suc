@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "suc/cmn/fd.hxx"
+#include "suc/cmn/Fd.hxx"
 
 #include "suc/cmn/runtimeerror_errno.hxx"
 
@@ -20,40 +20,40 @@
 #include <utility>
 
 namespace suc::cmn {
-    fd fd::make_or_rteeno(int fd, std::string_view msg) {
+    Fd Fd::make_or_rteeno(int fd, std::string_view msg) {
         if (fd < 0) {
             throw runtimeerror_errno(msg, errno);
         }
         return {fd};
     }
-    fd fd::make(int fd) {
+    Fd Fd::make(int fd) {
         if (fd < 0) {
             throw std::runtime_error("not a valid file descriptor");
         }
         return {fd};
     }
 
-    fd::fd(int fd) : m_fd{fd} {}
+    Fd::Fd(int fd) : m_fd{fd} {}
 
-    fd::~fd() {
+    Fd::~Fd() {
         if (m_fd >= 0) {
             close(m_fd);
             m_fd = -1;
         }
     }
 
-    fd::fd(fd&& other) noexcept : m_fd{std::exchange(other.m_fd, -1)} {}
+    Fd::Fd(Fd&& other) noexcept : m_fd{std::exchange(other.m_fd, -1)} {}
 
-    fd& fd::operator=(fd&& other) noexcept {
+    Fd& Fd::operator=(Fd&& other) noexcept {
         std::swap(m_fd, other.m_fd);
         return *this;
     }
 
-    const int& fd::operator*() const {
+    const int& Fd::operator*() const {
         return m_fd;
     }
 
-    fd::operator int() const {
+    Fd::operator int() const {
         return m_fd;
     }
 

@@ -106,8 +106,8 @@ namespace suc::epl {
     }
 
     EventQueue::EventQueue(Private)
-        : m_epfd{cmn::fd::make_or_rteeno(epoll_create1(EPOLL_CLOEXEC), "creation of epoll fd failed")},
-          m_evtfd(cmn::fd::make_or_rteeno(eventfd(0, EFD_CLOEXEC | EFD_NONBLOCK))),
+        : m_epfd{cmn::Fd::make_or_rteeno(epoll_create1(EPOLL_CLOEXEC), "creation of epoll fd failed")},
+          m_evtfd(cmn::Fd::make_or_rteeno(eventfd(0, EFD_CLOEXEC | EFD_NONBLOCK))),
           m_state{State::Idle} {
         auto [it, inserted] = m_fds.emplace(*m_evtfd, cb{.inputAvailable = [&] -> void {
             // We do no special handling here. We just want to be sure to handle e.g. changed state variable.

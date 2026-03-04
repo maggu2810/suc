@@ -20,12 +20,12 @@
 
 #include "EventQueue.hxx"
 #include <functional>
-#include <suc/cmn/fd.hxx>
+#include <suc/cmn/Fd.hxx>
 
 namespace suc::epl {
     class Fd {
     public:
-        explicit Fd(cmn::fd&& fd, EventQueue& eventQueue = EventQueue::coreInstance());
+        explicit Fd(cmn::Fd&& fd, EventQueue& eventQueue = EventQueue::coreInstance());
         ~Fd();
 
         Fd(const Fd&)            = delete;
@@ -46,7 +46,7 @@ namespace suc::epl {
         }
 
     private:
-        cmn::fd m_fd;
+        cmn::Fd m_fd;
         EventQueue& m_eventQueue;
     };
 } // namespace suc::epl

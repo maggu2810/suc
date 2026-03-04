@@ -15,15 +15,15 @@
 #ifndef SUC_GPIO_LINE_HXX
 #define SUC_GPIO_LINE_HXX
 
-#include <suc/cmn/fd.hxx>
+#include <suc/cmn/Fd.hxx>
 
 namespace suc::gpio {
     class line {
     public:
-        explicit line(suc::cmn::fd&& fd);
+        explicit line(suc::cmn::Fd&& fd);
 
     protected:
-        suc::cmn::fd m_fd;
+        suc::cmn::Fd m_fd;
     };
 } // namespace suc::gpio
 

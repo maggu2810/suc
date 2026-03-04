@@ -24,7 +24,7 @@
 
 namespace suc::epl {
     EventFd::EventFd(const bool semaphore, EventQueue& eventQueue)
-        : m_fd(Fd{suc::cmn::fd::make_or_rteeno(
+        : m_fd(Fd{suc::cmn::Fd::make_or_rteeno(
                       eventfd(0, EFD_CLOEXEC | EFD_NONBLOCK | (semaphore ? EFD_SEMAPHORE : 0))),
               eventQueue}) {}
 
