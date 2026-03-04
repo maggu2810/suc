@@ -18,7 +18,6 @@
 #include <fcntl.h>
 #include <iostream>
 #include <memory>
-#include <suc/cmn/runtimeerror_errno.hxx>
 #include <suc/epl/base/EventQueue.hxx>
 #include <suc/epl/base/Fd.hxx>
 #include <suc/epl/common/SignalFd.hxx>

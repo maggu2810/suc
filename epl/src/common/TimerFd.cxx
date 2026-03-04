@@ -18,21 +18,20 @@
 
 #include "suc/epl/common/TimerFd.hxx"
 
-#include "../../../gpio/include/suc/gpio/event.hxx"
+#include "suc/cmn/ErrnoError.hxx"
+
 #include <format>
 #include <memory>
-#include <suc/cmn/logging.hxx>
-#include <suc/cmn/runtimeerror_errno.hxx>
-#include <suc/cmn/to_string.hxx>
 #include <sys/timerfd.h>
+#include <unistd.h>
 #include <utility>
 
 namespace suc::epl
 {
 TimerFd::TimerFd(EventQueue& eventQueue)
-    : m_fd(Fd {
-          suc::cmn::Fd::make_or_rteeno(timerfd_create(CLOCK_MONOTONIC, TFD_NONBLOCK | TFD_CLOEXEC)),
-          eventQueue})
+    : m_fd {suc::cmn::Fd::make(timerfd_create(CLOCK_MONOTONIC, TFD_NONBLOCK | TFD_CLOEXEC),
+                               "timerfd_create"),
+            eventQueue}
 {
 }
 
@@ -96,7 +95,7 @@ std::uint64_t TimerFd::readNumberOfExpirations() const
         const auto errnum = errno;
         // As this function is mostly called inside the event handler, this will break the event
         // handler. But as it is a general error, there is nothing we can do.
-        throw cmn::runtimeerror_errno(std::format("unexpected read return value: {}", rv), errnum);
+        throw cmn::ErrnoError(std::format("unexpected read return value: {}", rv), errnum);
     }
 }
 
@@ -104,7 +103,7 @@ void TimerFd::lowLevelSetTime(const itimerspec& value) const
 {
     if (timerfd_settime(m_fd, 0, &value, nullptr) != 0)
     {
-        throw cmn::runtimeerror_errno("timerfd_settime", errno);
+        throw cmn::ErrnoError("timerfd_settime", errno);
     }
 }
 } // namespace suc::epl

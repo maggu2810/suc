@@ -14,9 +14,10 @@
 
 #include "suc/gpio/output.hxx"
 
+#include <suc/cmn/ErrnoError.hxx>
+
 #include <format>
 #include <linux/gpio.h>
-#include <suc/cmn/runtimeerror_errno.hxx>
 #include <sys/ioctl.h>
 
 namespace suc::gpio
@@ -31,7 +32,7 @@ void output::set(bool active) const
 
     if (ioctl(m_fd, GPIO_V2_LINE_SET_VALUES_IOCTL, &values) == -1)
     {
-        throw suc::cmn::runtimeerror_errno("set");
+        throw suc::cmn::ErrnoError("set");
     }
 }
 } // namespace suc::gpio

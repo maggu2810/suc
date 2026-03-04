@@ -14,9 +14,10 @@
 
 #include "suc/gpio/input.hxx"
 
+#include <suc/cmn/ErrnoError.hxx>
+
 #include <linux/gpio.h>
 #include <stdexcept>
-#include <suc/cmn/runtimeerror_errno.hxx>
 #include <sys/ioctl.h>
 
 namespace suc::gpio
@@ -31,7 +32,7 @@ bool input::get() const
 
     if (ioctl(m_fd, GPIO_V2_LINE_GET_VALUES_IOCTL, &values) == -1)
     {
-        throw suc::cmn::runtimeerror_errno("get");
+        throw suc::cmn::ErrnoError("get");
     }
 
     return values.bits & 1;

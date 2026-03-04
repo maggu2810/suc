@@ -14,32 +14,48 @@
 
 #include "suc/cmn/Fd.hxx"
 
-#include "suc/cmn/runtimeerror_errno.hxx"
+#include "suc/cmn/ErrnoError.hxx"
 
+#include <sstream>
 #include <unistd.h>
 #include <utility>
 
+using namespace std::literals;
+
 namespace suc::cmn
 {
-Fd Fd::make_or_rteeno(int fd, std::string_view msg)
+Fd Fd::make(const int fd, const std::string_view msg, const bool withErrno)
 {
     if (fd < 0)
     {
-        throw runtimeerror_errno(msg, errno);
+        const int         errorNumber = errno;
+        std::stringstream ss {"invalid file descriptor"};
+        if (!msg.empty())
+        {
+            ss << "; " << msg;
+        }
+        if (withErrno)
+        {
+            throw ErrnoError(ss.str(), errorNumber);
+        }
+        else
+        {
+            throw std::runtime_error(ss.str());
+        }
     }
-    return {fd};
+    return Fd {fd};
 }
 
-Fd Fd::make(int fd)
+Fd Fd::make(const std::function<int()>& fdFunc, const std::string_view msg, const bool withErrno)
 {
-    if (fd < 0)
+    if (withErrno)
     {
-        throw std::runtime_error("not a valid file descriptor");
+        errno = 0;
     }
-    return {fd};
+    return make(fdFunc ? fdFunc() : -1, msg, withErrno);
 }
 
-Fd::Fd(int fd) : m_fd {fd}
+Fd::Fd(const int fd) : m_fd {fd}
 {
 }
 

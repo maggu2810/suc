@@ -15,6 +15,7 @@
 #ifndef SUC_CMN_FD_HXX
 #define SUC_CMN_FD_HXX
 
+#include <functional>
 #include <string_view>
 
 namespace suc::cmn
@@ -22,11 +23,11 @@ namespace suc::cmn
 class Fd
 {
 public:
-    static Fd make_or_rteeno(int fd, std::string_view msg = {});
-    static Fd make(int fd);
+    static Fd make(int fd, std::string_view msg = {}, bool withErrno = true);
+    static Fd make(const std::function<int()>& fdFunc, std::string_view msg = {}, bool withErrno = true);
 
 private:
-    Fd(int fd);
+    explicit Fd(int fd);
 
 public:
     ~Fd();

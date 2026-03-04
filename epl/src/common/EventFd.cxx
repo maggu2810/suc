@@ -18,16 +18,19 @@
 
 #include "suc/epl/common/EventFd.hxx"
 
-#include "suc/cmn/runtimeerror_errno.hxx"
+#include "suc/cmn/ErrnoError.hxx"
+
 #include <format>
 #include <sys/eventfd.h>
+#include <unistd.h>
 
 namespace suc::epl
 {
 EventFd::EventFd(const bool semaphore, EventQueue& eventQueue)
-    : m_fd(Fd {suc::cmn::Fd::make_or_rteeno(
-                   eventfd(0, EFD_CLOEXEC | EFD_NONBLOCK | (semaphore ? EFD_SEMAPHORE : 0))),
-               eventQueue})
+    : m_fd {suc::cmn::Fd::make(
+                eventfd(0, EFD_CLOEXEC | EFD_NONBLOCK | (semaphore ? EFD_SEMAPHORE : 0)),
+                "eventfd"),
+            eventQueue}
 {
 }
 
@@ -46,7 +49,7 @@ void EventFd::onShot(std::function<void(std::uint64_t)> func) const
             const auto    rvRead = ::read(m_fd, &value, sizeof(value));
             if (rvRead != sizeof(value))
             {
-                throw cmn::runtimeerror_errno(std::format("unexpected read rv: {}", rvRead));
+                throw cmn::ErrnoError(std::format("unexpected read rv: {}", rvRead));
             }
             func(value);
         });
@@ -57,7 +60,7 @@ void EventFd::add(const std::uint64_t value) const
     const auto rvWrite = ::write(m_fd, &value, sizeof(value));
     if (rvWrite != sizeof(value))
     {
-        throw cmn::runtimeerror_errno(std::format("unexpected write rv: {}", rvWrite));
+        throw cmn::ErrnoError(std::format("unexpected write rv: {}", rvWrite));
     }
 }
 

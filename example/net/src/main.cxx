@@ -44,23 +44,23 @@ int main(int argc, char* argv[])
         socklen_t        addr_peer_len = sizeof(addr_peer);
         if (getsockname(sockfd, reinterpret_cast<sockaddr*>(&addr_sock), &addr_sock_len) == 0)
         {
-            LOGD("getsockname: {}",
-                 suc::net::to_string(reinterpret_cast<sockaddr&>(addr_sock), addr_sock_len));
+            LOGFD("getsockname: {}",
+                  suc::net::to_string(reinterpret_cast<sockaddr&>(addr_sock), addr_sock_len));
         }
         else
         {
             const auto errnum = errno;
-            LOGW("getsockname failed: {}", suc::cmn::strerrnum(errnum));
+            LOGFW("getsockname failed: {}", suc::cmn::strerrnum(errnum));
         }
         if (getpeername(sockfd, reinterpret_cast<sockaddr*>(&addr_peer), &addr_peer_len) == 0)
         {
-            LOGD("getpeername: {}",
-                 suc::net::to_string(reinterpret_cast<sockaddr&>(addr_sock), addr_sock_len));
+            LOGFD("getpeername: {}",
+                  suc::net::to_string(reinterpret_cast<sockaddr&>(addr_sock), addr_sock_len));
         }
         else
         {
             const auto errnum = errno;
-            LOGW("getpeername failed: {}", suc::cmn::strerrnum(errnum));
+            LOGFW("getpeername failed: {}", suc::cmn::strerrnum(errnum));
         }
     }
 
@@ -74,7 +74,7 @@ int main(int argc, char* argv[])
             break;
         }
         const auto iface = suc::net::get_ifacename(host_addr);
-        LOGD("host address: {}, peer: {}, iface: {}",
+        LOGFD("host address: {}, peer: {}, iface: {}",
              suc::net::to_string(host_addr),
              suc::net::to_string(ss_peer),
              iface ? *iface : "unknown");

@@ -63,8 +63,8 @@ public:
 
     [[nodiscard]] bool running() const;
 
-    void add(int fd, std::function<void(cb&)> reg = {});
-    void mod(int fd, std::function<void(cb&)> reg);
+    void add(int fd, const std::function<void(cb&)>& reg = {});
+    void mod(int fd, const std::function<void(cb&)>& reg);
     void del(int fd);
 
 private:

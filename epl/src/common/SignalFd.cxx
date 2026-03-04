@@ -17,7 +17,9 @@
 //
 
 #include "suc/epl/common/SignalFd.hxx"
-#include "suc/cmn/runtimeerror_errno.hxx"
+
+#include "suc/cmn/ErrnoError.hxx"
+
 #include <csignal>
 
 namespace suc::epl
@@ -27,13 +29,13 @@ namespace suc::epl
     sigset_t sigset;
     if (sigemptyset(&sigset) != 0)
     {
-        throw suc::cmn::runtimeerror_errno("sigemptyset failed");
+        throw suc::cmn::ErrnoError("sigemptyset failed");
     }
     for (const auto& sig : signals)
     {
         if (sigaddset(&sigset, sig) != 0)
         {
-            throw suc::cmn::runtimeerror_errno("sigaddset failed");
+            throw suc::cmn::ErrnoError("sigaddset failed");
         }
     }
     return sigset;
@@ -43,12 +45,12 @@ void SignalFd::blockSignals(const sigset_t& sigset)
 {
     if (sigprocmask(SIG_BLOCK, &sigset, nullptr) != 0)
     {
-        throw suc::cmn::runtimeerror_errno("sigprocmask failed");
+        throw suc::cmn::ErrnoError("sigprocmask failed");
     }
 }
 
 SignalFd::SignalFd(const sigset_t& sigset, EventQueue& eventQueue)
-    : m_fd {suc::cmn::Fd::make_or_rteeno(signalfd(-1, &sigset, SFD_NONBLOCK | SFD_CLOEXEC)),
+    : m_fd {suc::cmn::Fd::make(signalfd(-1, &sigset, SFD_NONBLOCK | SFD_CLOEXEC), "signalfd"),
             eventQueue}
 {
 }
@@ -77,11 +79,11 @@ void SignalFd::onSignal(std::function<void(signalfd_siginfo&&)> func) const
             {
                 if (rv_read == 0)
                 {
-                    throw suc::cmn::runtimeerror_errno("read of signalfd returns 0");
+                    throw suc::cmn::ErrnoError("read of signalfd returns 0");
                 }
                 else
                 {
-                    throw suc::cmn::runtimeerror_errno("read of signalfd failed");
+                    throw suc::cmn::ErrnoError("read of signalfd failed");
                 }
             }
         });

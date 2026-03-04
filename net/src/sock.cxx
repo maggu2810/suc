@@ -22,6 +22,7 @@
 #include <suc/net/to_string.hxx>
 
 #include <fcntl.h>
+#include <unistd.h>
 
 namespace
 {
@@ -53,7 +54,7 @@ void logd(addrinfo* ai)
 {
     for (addrinfo* p = ai; p != nullptr; p = p->ai_next)
     {
-        LOGD("addrinfo: flags: {}, family: {}, socktype: {}, protocol: {}, addr: {}, canonname: {}",
+        LOGFD("addrinfo: flags: {}, family: {}, socktype: {}, protocol: {}, addr: {}, canonname: {}",
              p->ai_flags,
              p->ai_family,
              p->ai_socktype,
@@ -79,7 +80,7 @@ int create_bound_socket(socket_type   socket_type,
     auto servinfo = getaddrinfo(nullptr, std::to_string(port).c_str(), hints);
     if (!servinfo)
     {
-        LOGE("getaddrinfo: {}", servinfo.error());
+        LOGFE("getaddrinfo: {}", servinfo.error());
         return -1;
     }
 
@@ -91,14 +92,14 @@ int create_bound_socket(socket_type   socket_type,
         const int sockfd = socket(p->ai_family, p->ai_socktype | socket_flags, p->ai_protocol);
         if (sockfd == -1)
         {
-            LOGE("socket: {}", suc::cmn::strerrnum(errno));
+            LOGFE("socket: {}", suc::cmn::strerrnum(errno));
             continue;
         }
 
         if (bind(sockfd, p->ai_addr, p->ai_addrlen) == -1)
         {
             close(sockfd);
-            LOGE("bind: {}", suc::cmn::strerrnum(errno));
+            LOGFE("bind: {}", suc::cmn::strerrnum(errno));
             continue;
         }
 
@@ -108,7 +109,7 @@ int create_bound_socket(socket_type   socket_type,
             if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(enable)) == -1)
             {
                 close(sockfd);
-                LOGE("setsockopt: {}", suc::cmn::strerrnum(errno));
+                LOGFE("setsockopt: {}", suc::cmn::strerrnum(errno));
                 continue;
             }
         }
@@ -131,7 +132,7 @@ int create_connected_socket(socket_type        socket_type,
     auto servinfo = getaddrinfo(host.c_str(), std::to_string(port).c_str(), hints);
     if (!servinfo)
     {
-        LOGE("getaddrinfo: {}", servinfo.error());
+        LOGFE("getaddrinfo: {}", servinfo.error());
         return -1;
     }
 
@@ -143,14 +144,14 @@ int create_connected_socket(socket_type        socket_type,
         const int     sockfd = socket(p->ai_family, p->ai_socktype | socket_flags, p->ai_protocol);
         if (sockfd == -1)
         {
-            LOGE("socket: {}", suc::cmn::strerrnum(errno));
+            LOGFE("socket: {}", suc::cmn::strerrnum(errno));
             continue;
         }
 
         if (connect(sockfd, p->ai_addr, p->ai_addrlen) == -1)
         {
             close(sockfd);
-            LOGE("connect: {}", suc::cmn::strerrnum(errno));
+            LOGFE("connect: {}", suc::cmn::strerrnum(errno));
             continue;
         }
 
@@ -175,14 +176,14 @@ std::pair<bool, bool> prepare_for_udp_receive(int sock)
     if (!ipv4)
     {
         const auto errnum = errno;
-        LOGW("setsockopt failed: ipv4 pktinfo: {}", suc::cmn::strerrnum(errnum));
+        LOGFW("setsockopt failed: ipv4 pktinfo: {}", suc::cmn::strerrnum(errnum));
     }
     const bool ipv6 =
         setsockopt(sock, IPPROTO_IPV6, IPV6_RECVPKTINFO, &enable, sizeof(enable)) != -1;
     if (!ipv6)
     {
         const auto errnum = errno;
-        LOGW("setsockopt failed: ipv6 pktinfo: {}", suc::cmn::strerrnum(errnum));
+        LOGFW("setsockopt failed: ipv6 pktinfo: {}", suc::cmn::strerrnum(errnum));
     }
     return std::make_pair(ipv4, ipv6);
 }
@@ -219,13 +220,13 @@ ssize_t udp_receive(int               sockfd,
         if (my_cmsghdr->cmsg_level == IPPROTO_IP && my_cmsghdr->cmsg_type == IP_PKTINFO)
         {
             const auto pktinfo = reinterpret_cast<in_pktinfo*>(CMSG_DATA(my_cmsghdr));
-            LOGD("ipv4 pktinfo: {}, {}, {}",
+            LOGFD("ipv4 pktinfo: {}, {}, {}",
                  pktinfo->ipi_ifindex,
                  to_string(pktinfo->ipi_spec_dst),
                  to_string(pktinfo->ipi_addr));
             if (my_sockaddr_storage_peer.ss_family != AF_INET)
             {
-                LOGE("mismatch between pktinfo and source address family");
+                LOGFE("mismatch between pktinfo and source address family");
                 return -1;
             }
             if (host_addr)
@@ -236,10 +237,10 @@ ssize_t udp_receive(int               sockfd,
         else if (my_cmsghdr->cmsg_level == IPPROTO_IPV6 && my_cmsghdr->cmsg_type == IPV6_PKTINFO)
         {
             const auto pktinfo = reinterpret_cast<in6_pktinfo*>(CMSG_DATA(my_cmsghdr));
-            LOGD("ipv6 pktinfo: {}, {}", pktinfo->ipi6_ifindex, to_string(pktinfo->ipi6_addr));
+            LOGFD("ipv6 pktinfo: {}, {}", pktinfo->ipi6_ifindex, to_string(pktinfo->ipi6_addr));
             if (my_sockaddr_storage_peer.ss_family != AF_INET6)
             {
-                LOGE("mismatch between pktinfo and source address family");
+                LOGFE("mismatch between pktinfo and source address family");
                 return -1;
             }
             if (host_addr)
@@ -249,7 +250,7 @@ ssize_t udp_receive(int               sockfd,
         }
         else
         {
-            LOGD("unhandled cmsg: level: {}, type: {}",
+            LOGFD("unhandled cmsg: level: {}, type: {}",
                  my_cmsghdr->cmsg_level,
                  my_cmsghdr->cmsg_type);
         }
@@ -258,12 +259,12 @@ ssize_t udp_receive(int               sockfd,
     if (my_sockaddr_storage_peer.ss_family == AF_INET)
     {
         const auto sockaddr = reinterpret_cast<sockaddr_in*>(&my_sockaddr_storage_peer);
-        LOGD("ipv4 sockaddr: {}, {}", to_string(sockaddr->sin_addr), sockaddr->sin_port);
+        LOGFD("ipv4 sockaddr: {}, {}", to_string(sockaddr->sin_addr), sockaddr->sin_port);
     }
     else if (my_sockaddr_storage_peer.ss_family == AF_INET6)
     {
         const auto sockaddr = reinterpret_cast<sockaddr_in6*>(&my_sockaddr_storage_peer);
-        LOGD("ipv6 sockaddr: {}, {}, {}, {}",
+        LOGFD("ipv6 sockaddr: {}, {}, {}, {}",
              to_string(sockaddr->sin6_addr),
              sockaddr->sin6_port,
              sockaddr->sin6_flowinfo,
@@ -271,7 +272,7 @@ ssize_t udp_receive(int               sockfd,
     }
     else
     {
-        LOGD("unknown sockaddr type");
+        LOGFD("unknown sockaddr type");
         return -1;
     }
 

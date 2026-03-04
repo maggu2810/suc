@@ -59,7 +59,7 @@ bool match_sa_sa(const sockaddr& sa1, const sockaddr& sa2)
     const auto ifaceAddress2 = get_address<ADDRESS_TYPE, OFFSET>(sa2);
     if (std::memcmp(ifaceAddress1, ifaceAddress2, sizeof(ADDRESS_TYPE)) != 0)
     {
-        LOGD("Address does not match, use next");
+        LOGFD("Address does not match, use next");
         return false;
     }
 

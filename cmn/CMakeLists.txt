@@ -8,17 +8,17 @@ project(${NAME})
 
 add_library(${NAME}
         include/suc/cmn/ByteBuffer.hxx
-        include/suc/cmn/cleanup.hxx
+        include/suc/cmn/Cleanup.hxx
         include/suc/cmn/endian.hxx
+        include/suc/cmn/ErrnoError.hxx
         include/suc/cmn/logging.hxx
-        include/suc/cmn/fd.hxx
+        include/suc/cmn/Fd.hxx
         include/suc/cmn/overloaded.hxx
-        include/suc/cmn/runtimeerror_errno.hxx
         include/suc/cmn/StrictAliasing.hxx
         include/suc/cmn/to_string.hxx
-        src/cleanup.cxx
-        src/fd.cxx
-        src/runtimeerror_errno.cxx
+        src/Cleanup.cxx
+        src/ErrnoError.cxx
+        src/Fd.cxx
         src/to_string.cxx
 )
 

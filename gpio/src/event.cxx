@@ -19,9 +19,10 @@
 
 #include "suc/gpio/event.hxx"
 
+#include <suc/cmn/ErrnoError.hxx>
+
 #include <algorithm>
 #include <linux/gpio.h>
-#include <suc/cmn/runtimeerror_errno.hxx>
 #include <unistd.h>
 
 namespace suc::gpio
@@ -44,7 +45,7 @@ void event::poll_inspect(pollfd& pfd, const edge_handler& handler) const
         gpio_v2_line_event event {};
         if (read(m_fd, &event, sizeof(event)) != sizeof(event))
         {
-            throw suc::cmn::runtimeerror_errno("read event");
+            throw suc::cmn::ErrnoError("read event");
         };
         handler(event.timestamp_ns,
                 [](const std::uint32_t id) -> edge

@@ -14,11 +14,12 @@
 
 #include "suc/gpio/chip.hxx"
 
+#include <suc/cmn/ErrnoError.hxx>
+
 #include <cstring>
 #include <fcntl.h>
 #include <format>
 #include <linux/gpio.h>
-#include <suc/cmn/runtimeerror_errno.hxx>
 #include <sys/ioctl.h>
 
 namespace
@@ -69,7 +70,7 @@ suc::cmn::Fd get_line(int                                              chip_fd,
     const int iotctl_rv = ioctl(chip_fd, GPIO_V2_GET_LINE_IOCTL, &line_request);
     if (iotctl_rv == -1)
     {
-        throw suc::cmn::runtimeerror_errno(std::format("get line {} failed", line));
+        throw suc::cmn::ErrnoError(std::format("get line {} failed", line));
     }
     return suc::cmn::Fd::make(line_request.fd);
 }
@@ -78,8 +79,9 @@ suc::cmn::Fd get_line(int                                              chip_fd,
 namespace suc::gpio
 {
 chip::chip(int chip_number)
-    : m_fd {suc::cmn::Fd::make_or_rteeno(
-          open(std::format("/dev/gpiochip{}", chip_number).c_str(), O_RDONLY | O_NONBLOCK))}
+    : m_fd {suc::cmn::Fd::make(
+          open(std::format("/dev/gpiochip{}", chip_number).c_str(), O_RDONLY | O_NONBLOCK),
+          "open")}
 {
 }
 

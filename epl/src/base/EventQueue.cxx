@@ -18,11 +18,11 @@
 
 #include "suc/epl/base/EventQueue.hxx"
 
-#include "../../../gpio/include/suc/gpio/event.hxx"
 #include "suc/epl/base/InputFlags.hxx"
+
 #include <format>
 #include <set>
-#include <suc/cmn/runtimeerror_errno.hxx>
+#include <suc/cmn/ErrnoError.hxx>
 #include <sys/epoll.h>
 #include <sys/eventfd.h>
 #include <unistd.h>
@@ -88,7 +88,7 @@ const std::function<void()>& cbFunc(const suc::epl::cb& cb, EPOLL_EVENTS eventTy
     }
 }
 
-uint32_t calculateEvents(const suc::epl::cb& cb, const std::set<suc::epl::InputFlags> iflags)
+uint32_t calculateEvents(const suc::epl::cb& cb, const std::set<suc::epl::InputFlags>& iflags)
 {
     uint32_t events = (iflags.contains(suc::epl::InputFlags::EdgeTriggered) ? EPOLLET : 0U) |   //
                       (iflags.contains(suc::epl::InputFlags::OneShot) ? EPOLLONESHOT : 0U) |    //
@@ -119,8 +119,8 @@ EventQueue EventQueue::create()
 }
 
 EventQueue::EventQueue(Private)
-    : m_epfd {cmn::Fd::make_or_rteeno(epoll_create1(EPOLL_CLOEXEC), "creation of epoll fd failed")},
-      m_evtfd(cmn::Fd::make_or_rteeno(eventfd(0, EFD_CLOEXEC | EFD_NONBLOCK))),
+    : m_epfd {cmn::Fd::make(epoll_create1(EPOLL_CLOEXEC), "epoll_create1")},
+      m_evtfd {cmn::Fd::make(eventfd(0, EFD_CLOEXEC | EFD_NONBLOCK), "eventfd")},
       m_state {State::Idle}
 {
     auto [it, inserted] = m_fds.emplace(*m_evtfd,
@@ -136,7 +136,7 @@ EventQueue::EventQueue(Private)
     epoll_event evt {.events = calculateEvents(it->second, {}), .data {.fd = *m_evtfd}};
     if (epoll_ctl(*m_epfd, EPOLL_CTL_ADD, evt.data.fd, &evt) != 0)
     {
-        throw cmn::runtimeerror_errno("epoll_ctl add failed");
+        throw cmn::ErrnoError("epoll_ctl add failed");
     }
 }
 
@@ -159,7 +159,7 @@ int EventQueue::exec()
         {
             int errnum = errno;
             m_state.store(State::Error);
-            throw cmn::runtimeerror_errno("epoll_wait failed", errnum);
+            throw cmn::ErrnoError("epoll_wait failed", errnum);
         }
         expected = State::Stopping;
         if (m_state.compare_exchange_strong(expected, State::Stopped))
@@ -238,7 +238,7 @@ bool EventQueue::running() const
     return m_state == State::Running;
 }
 
-void EventQueue::add(int fd, std::function<void(cb&)> reg)
+void EventQueue::add(int fd, const std::function<void(cb&)>& reg)
 {
     if (m_fds.contains(fd))
     {
@@ -259,11 +259,11 @@ void EventQueue::add(int fd, std::function<void(cb&)> reg)
     epoll_event evt {.events = calculateEvents(it->second, {}), .data {.fd = fd}};
     if (epoll_ctl(*m_epfd, EPOLL_CTL_ADD, evt.data.fd, &evt) != 0)
     {
-        throw cmn::runtimeerror_errno("epoll_ctl add failed");
+        throw cmn::ErrnoError("epoll_ctl add failed");
     }
 }
 
-void EventQueue::mod(int fd, std::function<void(cb&)> reg)
+void EventQueue::mod(const int fd, const std::function<void(cb&)>& reg)
 {
     if (!reg)
     {
@@ -275,7 +275,7 @@ void EventQueue::mod(int fd, std::function<void(cb&)> reg)
         epoll_event evt {.events = calculateEvents(it->second, {}), .data {.fd = fd}};
         if (epoll_ctl(*m_epfd, EPOLL_CTL_MOD, evt.data.fd, &evt) != 0)
         {
-            throw cmn::runtimeerror_errno("epoll_ctl mod failed");
+            throw cmn::ErrnoError("epoll_ctl mod failed");
         }
     }
     else
@@ -284,7 +284,7 @@ void EventQueue::mod(int fd, std::function<void(cb&)> reg)
     }
 }
 
-void EventQueue::del(int fd)
+void EventQueue::del(const int fd)
 {
     if (m_fds.erase(fd) == 0)
     {
@@ -297,11 +297,11 @@ void EventQueue::del(int fd)
             // see "man 7 epoll" answer to question:
             // "Will closing a file descriptor cause it to be removed from all epoll interest
             // lists?" ATM we require to deregister before closing it.
-            throw cmn::runtimeerror_errno("epoll_ctl del failed");
+            throw cmn::ErrnoError("epoll_ctl del failed");
         }
         else
         {
-            throw cmn::runtimeerror_errno("epoll_ctl del failed");
+            throw cmn::ErrnoError("epoll_ctl del failed");
         }
     }
 }

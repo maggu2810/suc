@@ -1,4 +1,4 @@
-// Copyright [2025] [maggu2810]
+// Copyright [2026] [maggu2810]
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,24 +12,28 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "suc/cmn/runtimeerror_errno.hxx"
+//
+// Created by maggu2810 on 3/4/26.
+//
+#ifndef SUC_CMN_ERRNOERROR_HXX
+#define SUC_CMN_ERRNOERROR_HXX
 
-#include "suc/cmn/to_string.hxx"
-#include <cstring>
-#include <format>
-
-namespace
-{
-std::string genmsg(const std::string_view msg, const int errnum)
-{
-    return std::format("{} [{}]", msg, suc::cmn::strerrnum(errnum));
-}
-} // namespace
+#include <stdexcept>
+#include <string_view>
 
 namespace suc::cmn
 {
-runtimeerror_errno::runtimeerror_errno(const std::string_view msg, const int errnum)
-    : std::runtime_error {genmsg(msg, errnum)}
+class ErrnoError : public std::runtime_error
 {
-}
+public:
+    explicit ErrnoError(std::string_view msg = {}, int errorNumber = errno);
+
+    [[nodiscard]] int errorNumber() const;
+
+private:
+    int         m_errorNumber;
+    std::string m_what;
+};
 } // namespace suc::cmn
+
+#endif // SUC_CMN_ERRNOERROR_HXX
