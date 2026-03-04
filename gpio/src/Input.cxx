@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "suc/gpio/input.hxx"
+#include "suc/gpio/Input.hxx"
 
 #include <suc/cmn/ErrnoError.hxx>
 
@@ -22,11 +22,11 @@
 
 namespace suc::gpio
 {
-input::input(suc::cmn::Fd&& fd) : line(std::move(fd))
+Input::Input(suc::cmn::Fd&& fd) : Line(std::move(fd))
 {
 }
 
-bool input::get() const
+bool Input::get() const
 {
     gpio_v2_line_values values {.bits = 0ULL, .mask = 1};
 

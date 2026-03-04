@@ -7,16 +7,16 @@ set(NAME ${NAMESPACE}-${TARGET})
 project(${NAME})
 
 add_library(${NAME}
-        include/suc/gpio/chip.hxx
-        include/suc/gpio/event.hxx
-        include/suc/gpio/input.hxx
-        include/suc/gpio/line.hxx
-        include/suc/gpio/output.hxx
-        src/chip.cxx
-        src/event.cxx
-        src/input.cxx
-        src/line.cxx
-        src/output.cxx
+        include/suc/gpio/Chip.hxx
+        include/suc/gpio/Event.hxx
+        include/suc/gpio/Input.hxx
+        include/suc/gpio/Line.hxx
+        include/suc/gpio/Output.hxx
+        src/Chip.cxx
+        src/Event.cxx
+        src/Input.cxx
+        src/Line.cxx
+        src/Output.cxx
 )
 
 target_include_directories(${NAME} PUBLIC

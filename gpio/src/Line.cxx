@@ -12,21 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef SUC_GPIO_LINE_HXX
-#define SUC_GPIO_LINE_HXX
-
-#include <suc/cmn/Fd.hxx>
+#include "suc/gpio/Line.hxx"
 
 namespace suc::gpio
 {
-class line
+Line::Line(suc::cmn::Fd&& fd) : m_fd(std::move(fd))
 {
-public:
-    explicit line(suc::cmn::Fd&& fd);
-
-protected:
-    suc::cmn::Fd m_fd;
-};
+}
 } // namespace suc::gpio
-
-#endif // SUC_GPIO_LINE_HXX

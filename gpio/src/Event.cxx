@@ -17,7 +17,7 @@
  * file 'LICENSE', which is part of this source code package.
  */
 
-#include "suc/gpio/event.hxx"
+#include "suc/gpio/Event.hxx"
 
 #include <suc/cmn/ErrnoError.hxx>
 
@@ -27,18 +27,18 @@
 
 namespace suc::gpio
 {
-event::event(suc::cmn::Fd&& fd) : input(std::move(fd))
+Event::Event(suc::cmn::Fd&& fd) : Input(std::move(fd))
 {
 }
 
-void event::poll_setup(pollfd& pfd) const
+void Event::pollSetup(pollfd& pfd) const
 {
     pfd.fd      = m_fd;
     pfd.events  = POLLIN;
     pfd.revents = 0;
 }
 
-void event::poll_inspect(pollfd& pfd, const edge_handler& handler) const
+void Event::pollInspect(pollfd& pfd, const EdgeHandler& handler) const
 {
     if (pfd.revents & POLLIN)
     {
@@ -48,15 +48,15 @@ void event::poll_inspect(pollfd& pfd, const edge_handler& handler) const
             throw suc::cmn::ErrnoError("read event");
         };
         handler(event.timestamp_ns,
-                [](const std::uint32_t id) -> edge
+                [](const std::uint32_t id) -> Edge
                 {
                     if (id == GPIOEVENT_EVENT_RISING_EDGE)
                     {
-                        return edge::rising;
+                        return Edge::Rising;
                     }
                     if (id == GPIOEVENT_EVENT_FALLING_EDGE)
                     {
-                        return edge::falling;
+                        return Edge::Falling;
                     }
                     throw std::runtime_error("unknown edge event");
                 }(event.id));

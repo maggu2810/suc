@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "suc/gpio/chip.hxx"
+#include "suc/gpio/Chip.hxx"
 
 #include <suc/cmn/ErrnoError.hxx>
 
@@ -24,11 +24,11 @@
 
 namespace
 {
-suc::cmn::Fd get_line(int                                              chip_fd,
-                      std::uint32_t                                    line,
-                      std::uint64_t                                    flags,
-                      const suc::gpio::line_args&                      line_args,
-                      const std::optional<suc::gpio::input_line_args>& input_line_args)
+suc::cmn::Fd getLine(const int                                      chipFd,
+                     const std::uint32_t                            line,
+                     const std::uint64_t                            flags,
+                     const suc::gpio::LineArgs&                     lineArgs,
+                     const std::optional<suc::gpio::InputLineArgs>& inputLineArgs)
 {
     std::uint32_t        num_attrs = 0;
     gpio_v2_line_request line_request {
@@ -41,7 +41,7 @@ suc::cmn::Fd get_line(int                                              chip_fd,
         .fd                = -1
     };
 
-    if (line_args.active_low)
+    if (lineArgs.activeLow)
     {
         line_request.config.flags |= GPIO_V2_LINE_FLAG_ACTIVE_LOW;
     }
@@ -51,23 +51,23 @@ suc::cmn::Fd get_line(int                                              chip_fd,
     }
 
     const std::string_view consumer =
-        line_args.consumer.empty() ? program_invocation_short_name : line_args.consumer;
+        lineArgs.consumer.empty() ? program_invocation_short_name : lineArgs.consumer;
     const auto consumer_len = std::min(std::size(line_request.consumer) - 1, consumer.size());
     std::memcpy(line_request.consumer, consumer.data(), consumer_len);
     line_request.consumer[consumer_len] = '\0';
 
-    if (input_line_args)
+    if (inputLineArgs)
     {
-        if (input_line_args->debounce_period_us)
+        if (inputLineArgs->debounce_period_us)
         {
             gpio_v2_line_config_attribute& cfg = line_request.config.attrs[num_attrs];
             cfg.attr.id                        = GPIO_V2_LINE_ATTR_ID_DEBOUNCE;
-            cfg.attr.debounce_period_us        = *input_line_args->debounce_period_us;
+            cfg.attr.debounce_period_us        = *inputLineArgs->debounce_period_us;
             cfg.mask                           = 1;
             line_request.config.num_attrs      = ++num_attrs;
         }
     }
-    const int iotctl_rv = ioctl(chip_fd, GPIO_V2_GET_LINE_IOCTL, &line_request);
+    const int iotctl_rv = ioctl(chipFd, GPIO_V2_GET_LINE_IOCTL, &line_request);
     if (iotctl_rv == -1)
     {
         throw suc::cmn::ErrnoError(std::format("get line {} failed", line));
@@ -78,34 +78,34 @@ suc::cmn::Fd get_line(int                                              chip_fd,
 
 namespace suc::gpio
 {
-chip::chip(int chip_number)
+Chip::Chip(const int chipNumber)
     : m_fd {suc::cmn::Fd::make(
-          open(std::format("/dev/gpiochip{}", chip_number).c_str(), O_RDONLY | O_NONBLOCK),
+          open(std::format("/dev/gpiochip{}", chipNumber).c_str(), O_RDONLY | O_NONBLOCK),
           "open")}
 {
 }
 
-input chip::get_input(std::uint32_t          line,
-                      const line_args&       line_args,
-                      const input_line_args& input_line_args) const
+Input Chip::getInput(const std::uint32_t  line,
+                     const LineArgs&      lineArgs,
+                     const InputLineArgs& inputLineArgs) const
 {
-    return input {get_line(m_fd, line, GPIO_V2_LINE_FLAG_INPUT, line_args, input_line_args)};
+    return Input {getLine(m_fd, line, GPIO_V2_LINE_FLAG_INPUT, lineArgs, inputLineArgs)};
 }
 
-event chip::get_event(std::uint32_t          line,
-                      const line_args&       line_args,
-                      const input_line_args& input_line_args) const
+Event Chip::getEvent(const std::uint32_t  line,
+                     const LineArgs&      lineArgs,
+                     const InputLineArgs& inputLineArgs) const
 {
-    return event {get_line(m_fd,
-                           line,
-                           GPIO_V2_LINE_FLAG_INPUT | GPIO_V2_LINE_FLAG_EDGE_FALLING |
-                               GPIO_V2_LINE_FLAG_EDGE_RISING,
-                           line_args,
-                           input_line_args)};
+    return Event {getLine(m_fd,
+                          line,
+                          GPIO_V2_LINE_FLAG_INPUT | GPIO_V2_LINE_FLAG_EDGE_FALLING |
+                              GPIO_V2_LINE_FLAG_EDGE_RISING,
+                          lineArgs,
+                          inputLineArgs)};
 }
 
-output chip::get_output(std::uint32_t line, const line_args& line_args) const
+Output Chip::getOutput(const std::uint32_t line, const LineArgs& lineArgs) const
 {
-    return output {get_line(m_fd, line, GPIO_V2_LINE_FLAG_OUTPUT, line_args, {})};
+    return Output {getLine(m_fd, line, GPIO_V2_LINE_FLAG_OUTPUT, lineArgs, {})};
 }
 } // namespace suc::gpio

@@ -12,27 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "suc/gpio/output.hxx"
+#ifndef SUC_GPIO_LINE_HXX
+#define SUC_GPIO_LINE_HXX
 
-#include <suc/cmn/ErrnoError.hxx>
-
-#include <format>
-#include <linux/gpio.h>
-#include <sys/ioctl.h>
+#include <suc/cmn/Fd.hxx>
 
 namespace suc::gpio
 {
-output::output(suc::cmn::Fd&& fd) : line(std::move(fd))
+class Line
 {
-}
+public:
+    explicit Line(suc::cmn::Fd&& fd);
 
-void output::set(bool active) const
-{
-    gpio_v2_line_values values {.bits = active ? 1ULL : 0ULL, .mask = 1};
-
-    if (ioctl(m_fd, GPIO_V2_LINE_SET_VALUES_IOCTL, &values) == -1)
-    {
-        throw suc::cmn::ErrnoError("set");
-    }
-}
+protected:
+    suc::cmn::Fd m_fd;
+};
 } // namespace suc::gpio
+
+#endif // SUC_GPIO_LINE_HXX

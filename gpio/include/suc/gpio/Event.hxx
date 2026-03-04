@@ -15,30 +15,31 @@
 #ifndef SUC_GPIO_EVENT_HXX
 #define SUC_GPIO_EVENT_HXX
 
-#include "input.hxx"
-#include "line.hxx"
+#include "Input.hxx"
+#include "Line.hxx"
+
 #include <cstdint>
 #include <functional>
 #include <poll.h>
 
 namespace suc::gpio
 {
-class event : protected input
+class Event : protected Input
 {
 public:
-    enum class edge
+    enum class Edge
     {
-        rising,
-        falling
+        Rising,
+        Falling
     };
 
-    explicit event(suc::cmn::Fd&& fd);
-    using input::get;
+    explicit Event(suc::cmn::Fd&& fd);
+    using Input::get;
 
-    void poll_setup(pollfd& pfd) const;
+    void pollSetup(pollfd& pfd) const;
 
-    using edge_handler = std::function<void(std::uint64_t ts_mon_ns, edge event)>;
-    void poll_inspect(pollfd& pfd, const edge_handler& handler) const;
+    using EdgeHandler = std::function<void(std::uint64_t ts_mon_ns, Edge event)>;
+    void pollInspect(pollfd& pfd, const EdgeHandler& handler) const;
 };
 } // namespace suc::gpio
 

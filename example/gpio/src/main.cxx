@@ -13,7 +13,7 @@
 // limitations under the License.
 
 #include <cstdlib>
-#include <suc/gpio/chip.hxx>
+#include <suc/gpio/Chip.hxx>
 #include <unistd.h>
 
 #if 0
@@ -36,10 +36,10 @@ echo 1 > gpio-device/live
 
 int main(int argc, char* argv[])
 {
-    suc::gpio::chip chip {0};
-    auto            o7 = chip.get_output(7);
-    auto            i8 = chip.get_input(8);
-    auto            e9 = chip.get_event(9);
+    suc::gpio::Chip chip {0};
+    auto            o7 = chip.getOutput(7);
+    auto            i8 = chip.getInput(8);
+    auto            e9 = chip.getEvent(9);
     sleep(60);
     return EXIT_SUCCESS;
 }

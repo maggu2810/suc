@@ -15,14 +15,14 @@
 #ifndef SUC_GPIO_INPUT_HXX
 #define SUC_GPIO_INPUT_HXX
 
-#include "line.hxx"
+#include "Line.hxx"
 
 namespace suc::gpio
 {
-class input : protected line
+class Input : protected Line
 {
 public:
-    explicit input(suc::cmn::Fd&& fd);
+    explicit Input(suc::cmn::Fd&& fd);
 
     [[nodiscard]] bool get() const;
 };

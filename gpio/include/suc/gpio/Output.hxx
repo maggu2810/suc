@@ -15,14 +15,14 @@
 #ifndef SUC_GPIO_OUTPUT_HXX
 #define SUC_GPIO_OUTPUT_HXX
 
-#include "line.hxx"
+#include "Line.hxx"
 
 namespace suc::gpio
 {
-class output : protected line
+class Output : protected Line
 {
 public:
-    explicit output(suc::cmn::Fd&& fd);
+    explicit Output(suc::cmn::Fd&& fd);
 
     void set(bool active) const;
 };
