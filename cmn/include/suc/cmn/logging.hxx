@@ -12,138 +12,103 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef SUC_CMN_LOGGING_HXX
-#define SUC_CMN_LOGGING_HXX
+#ifndef SUC_LOGGING_HXX
+#define SUC_LOGGING_HXX
 
-#include <iostream>
+#include <print>
 #include <source_location>
+#include <syslog.h>
+#include <utility>
 
-class logger
-{
-public:
-    constexpr explicit logger(std::source_location&& sl = std::source_location::current())
-        : m_sl {sl}
-    {
-    }
-
-    template<typename... A>
-    constexpr void error(std::format_string<A...> fmt, A&&... a) const
-    {
-        const auto message = std::format(fmt, std::forward<A>(a)...);
-        std::clog << "file: " << m_sl.file_name() << '(' << m_sl.line() << ':' << m_sl.column()
-                  << ") `" << m_sl.function_name() << "`: " << message << '\n';
-    }
-
-private:
-    const std::source_location m_sl;
-};
-
-#include <format>
-#include <iostream>
-#include <ostream>
-#include <valarray>
-
-/*
- * | 0 | EMERGENGY | System is unusable               |
- * | 1 | ALERT     | Action must be taken immediately |
- * | 2 | CRITICAL  | Critical conditions              |
- * | 3 | ERROR     | Error conditions                 |
- * | 4 | WARNING   | Warning conditions               |
- * | 5 | NOTICE    | Normal but significant condition |
- * | 6 | INFO      | Informational                    |
- * | 7 | DEBUG     | Debug-level messages             |
- */
-
-#define LOGFD(...) suc::logging::debug(__VA_ARGS__)
-#define LOGFI(...) suc::logging::info(__VA_ARGS__)
-#define LOGFN(...) suc::logging::notice(__VA_ARGS__)
-#define LOGFW(...) suc::logging::warn(__VA_ARGS__)
-#define LOGFE(...) suc::logging::err(__VA_ARGS__)
-#define LOGFC(...) suc::logging::crit(__VA_ARGS__)
-#define LOGFA(...) suc::logging::alert(__VA_ARGS__)
-#define LOGFU(...) suc::logging::emerg(__VA_ARGS__)
+#ifndef SUC_LOGGING_SLOC
+#define SUC_LOGGING_SLOC 0
+#else
+#if SUC_LOGGING_SLOC
+#undef SUC_LOGGING_SLOC
+#define SUC_LOGGING_SLOC 1
+#else
+#undef SUC_LOGGING_SLOC
+#define SUC_LOGGING_SLOC 0
+#endif
+#endif
 
 namespace suc::logging
 {
-enum class level
+enum class Level : decltype(LOG_INFO)
 {
-    emergency,
-    alert,
-    critical,
-    error,
-    warning,
-    notice,
-    info,
-    debug
+    Emergency = /* 0 | EMERGENGY | System is unusable               */ LOG_EMERG,
+    Alert     = /* 1 | ALERT     | Action must be taken immediately */ LOG_ALERT,
+    Critical  = /* 2 | CRITICAL  | Critical conditions              */ LOG_CRIT,
+    Error     = /* 3 | ERROR     | Error conditions                 */ LOG_ERR,
+    Warning   = /* 4 | WARNING   | Warning conditions               */ LOG_WARNING,
+    Notice    = /* 5 | NOTICE    | Normal but significant condition */ LOG_NOTICE,
+    Info      = /* 6 | INFO      | Informational                    */ LOG_INFO,
+    Debug     = /* 7 | DEBUG     | Debug-level messages             */ LOG_DEBUG
 };
 
 namespace impl
 {
-inline void log(level lvl, const std::string& str)
+template<typename... Args>
+struct FormatStringWithSourceLocation
 {
-    std::cout << str << std::endl;
+    template<typename T>
+    requires std::constructible_from<std::format_string<Args...>, const T&>
+    consteval FormatStringWithSourceLocation(
+        const T&             fmt,
+        std::source_location sloc = std::source_location::current())
+        : fmt {fmt}, sloc {sloc}
+    {
+    }
+
+    std::format_string<Args...> fmt;
+    std::source_location        sloc;
+};
+
+void log(Level level, const std::string& message);
+void log(Level level, const std::string& message, const std::source_location& sloc);
+
+template<Level level = Level::Info, class... Args>
+constexpr void log(FormatStringWithSourceLocation<Args...>&& fmt, Args&&... args)
+{
+    log(level,
+        std::format(std::forward<std::format_string<Args...>>(fmt.fmt),
+                    std::forward<Args>(args)...),
+        fmt.sloc);
 }
 
-template<class... Args>
-constexpr void log(level lvl, std::format_string<Args...> fmt, Args&&... args)
+template<Level level = Level::Info, class... Args>
+constexpr void log(std::format_string<Args...>&& fmt, Args&&... args)
 {
-    log(lvl, std::format(fmt, std::forward<Args>(args)...));
+    log(level,
+        std::format(std::forward<std::format_string<Args...>>(fmt), std::forward<Args>(args)...));
 }
+
 } // namespace impl
 
-template<class... Args>
-constexpr void log(level lvl, std::format_string<Args...> fmt, Args&&... args)
+template<typename... Args>
+using FormatString =
+#if SUC_LOGGING_SLOC
+    impl::FormatStringWithSourceLocation
+#else
+    std::format_string
+#endif
+    <std::type_identity_t<Args>...>;
+
+template<Level level = Level::Info, class... Args>
+constexpr void log(FormatString<Args...>&& fmt, Args&&... args)
 {
-    impl::log(lvl, fmt, std::forward<Args>(args)...);
+    impl::log(std::forward<FormatString<Args...>>(fmt), std::forward<Args>(args)...);
 }
 
-template<class... Args>
-constexpr void emerg(std::format_string<Args...> fmt, Args&&... args)
-{
-    impl::log(level::emergency, fmt, std::forward<Args>(args)...);
-}
-
-template<class... Args>
-constexpr void alert(std::format_string<Args...> fmt, Args&&... args)
-{
-    impl::log(level::alert, fmt, std::forward<Args>(args)...);
-}
-
-template<class... Args>
-constexpr void crit(std::format_string<Args...> fmt, Args&&... args)
-{
-    impl::log(level::critical, fmt, std::forward<Args>(args)...);
-}
-
-template<class... Args>
-constexpr void err(std::format_string<Args...> fmt, Args&&... args)
-{
-    impl::log(level::error, fmt, std::forward<Args>(args)...);
-}
-
-template<class... Args>
-constexpr void warn(std::format_string<Args...> fmt, Args&&... args)
-{
-    impl::log(level::warning, fmt, std::forward<Args>(args)...);
-}
-
-template<class... Args>
-constexpr void notice(std::format_string<Args...> fmt, Args&&... args)
-{
-    impl::log(level::notice, fmt, std::forward<Args>(args)...);
-}
-
-template<class... Args>
-constexpr void info(std::format_string<Args...> fmt, Args&&... args)
-{
-    impl::log(level::info, fmt, std::forward<Args>(args)...);
-}
-
-template<class... Args>
-constexpr void debug(std::format_string<Args...> fmt, Args&&... args)
-{
-    impl::log(level::debug, fmt, std::forward<Args>(args)...);
-}
 } // namespace suc::logging
 
-#endif // SUC_CMN_LOGGING_HXX
+#define LOGFD(...) suc::logging::log<suc::logging::Level::Debug>(__VA_ARGS__)
+#define LOGFI(...) suc::logging::log<suc::logging::Level::Info>(__VA_ARGS__)
+#define LOGFN(...) suc::logging::log<suc::logging::Level::Notice>(__VA_ARGS__)
+#define LOGFW(...) suc::logging::log<suc::logging::Level::Warning>(__VA_ARGS__)
+#define LOGFE(...) suc::logging::log<suc::logging::Level::Error>(__VA_ARGS__)
+#define LOGFC(...) suc::logging::log<suc::logging::Level::Critical>(__VA_ARGS__)
+#define LOGFA(...) suc::logging::log<suc::logging::Level::Alert>(__VA_ARGS__)
+#define LOGFU(...) suc::logging::log<suc::logging::Level::Emergency>(__VA_ARGS__)
+
+#endif // SUC_LOGGING_HXX

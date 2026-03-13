@@ -19,8 +19,14 @@ add_library(${NAME}
         src/Cleanup.cxx
         src/ErrnoError.cxx
         src/Fd.cxx
+        src/logging.cxx
         src/to_string.cxx
 )
+
+find_package(PkgConfig)
+pkg_check_modules(LIBSYSTEMD libsystemd REQUIRED)
+target_include_directories(${NAME} PRIVATE ${LIBSYSTEMD_INCLUDE_DIRS})
+target_link_libraries(${NAME} PRIVATE ${LIBSYSTEMD_LIBRARIES})
 
 target_include_directories(${NAME} PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>

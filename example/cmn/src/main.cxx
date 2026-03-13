@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#define SUC_LOGGING_SLOC 1
+
 #include <iostream>
 #include <suc/cmn/endian.hxx>
 #include <suc/cmn/logging.hxx>
@@ -40,7 +42,7 @@ int main(int argc, char* argv[])
     be             = suc::cmn::convert<std::endian::big, decltype(le)>(&value);
     std::cout << std::format("value: {:#x}, le2: {:#x}, le3: {:#x}\n", value, le2, le3);
 
-    logger().error("this is a {}", 3);
+    LOGFI("hello {} world {}", "funny", 2);
 
     return EXIT_SUCCESS;
 }
