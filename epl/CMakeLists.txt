@@ -19,6 +19,8 @@ add_library(${NAME}
         include/suc/epl/common/ThreadSafeQueue.hxx
         include/suc/epl/common/TimerFd.hxx
         src/common/TimerFd.cxx
+        include/suc/epl/gpio/GpioEvent.hxx
+        src/gpio/GpioEvent.cxx
 )
 
 target_include_directories(${NAME} PUBLIC
@@ -28,3 +30,4 @@ target_include_directories(${NAME} PUBLIC
 
 target_link_libraries(${NAME} PUBLIC suc-ci-pub PRIVATE suc-ci-prv INTERFACE suc-ci-iface)
 target_link_libraries(${NAME} PUBLIC suc-cmn)
+target_link_libraries(${NAME} PUBLIC suc-gpio)

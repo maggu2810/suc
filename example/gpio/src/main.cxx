@@ -32,6 +32,7 @@ echo bar > gpio-device/gpio-bank0/line10/name
 echo mylabel > gpio-device/gpio-bank0/label
 echo 1 > gpio-device/live
 
+while true; do for i in pull-up pull-down; do echo $i > /sys/devices/platform/gpio-sim.0/gpiochip0/sim_gpio9/pull; sleep 1; done; done
 #endif
 
 int main(int argc, char* argv[])

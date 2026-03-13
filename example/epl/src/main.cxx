@@ -12,18 +12,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "suc/epl/gpio/GpioEvent.hxx"
+
+#include <suc/epl/base/EventQueue.hxx>
+#include <suc/epl/base/Fd.hxx>
+#include <suc/epl/common/SignalFd.hxx>
+#include <suc/epl/common/ThreadSafeQueue.hxx>
+#include <suc/epl/common/TimerFd.hxx>
+#include <suc/gpio/Chip.hxx>
+
 #include <any>
 #include <chrono>
 #include <csignal>
 #include <fcntl.h>
 #include <iostream>
 #include <memory>
-#include <suc/epl/base/EventQueue.hxx>
-#include <suc/epl/base/Fd.hxx>
-#include <suc/epl/common/SignalFd.hxx>
-#include <suc/epl/common/ThreadSafeQueue.hxx>
-#include <suc/epl/common/TimerFd.hxx>
 #include <thread>
+#include <utility>
 
 int main(int argc, char* argv[])
 {
@@ -113,6 +118,22 @@ int main(int argc, char* argv[])
                 std::print(std::cout, "hello world\n");
             });
     }
+
+    auto gpioEvent = []() -> suc::epl::GpioEvent
+    {
+        suc::gpio::Chip chip {0};
+        return suc::epl::GpioEvent(chip.getEvent(9));
+    }();
+
+    gpioEvent.onEvent(
+        [](const suc::gpio::Event::TimePoint timePoint, const suc::gpio::Event::Edge event)
+        {
+            std::print(
+                std::cout,
+                "ts: {}, event: {}\n",
+                std::chrono::duration_cast<std::chrono::nanoseconds>(timePoint.time_since_epoch()),
+                std::to_underlying(event));
+        });
 
     return eventQueue.exec();
 }

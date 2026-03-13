@@ -18,15 +18,18 @@
 #include "Input.hxx"
 #include "Line.hxx"
 
-#include <cstdint>
+#include <chrono>
 #include <functional>
-#include <poll.h>
 
 namespace suc::gpio
 {
 class Event : protected Input
 {
 public:
+    using Clock     = std::chrono::steady_clock;
+    using TimePoint = Clock::time_point;
+    using Duration  = TimePoint::duration;
+
     enum class Edge
     {
         Rising,
@@ -36,10 +39,18 @@ public:
     explicit Event(suc::cmn::Fd&& fd);
     using Input::get;
 
-    void pollSetup(pollfd& pfd) const;
+    /**
+     * @brief Gets file descriptor for event queue handling.
+     *
+     * The returned file descriptor must only be used for detection "input" events. If you are using
+     * e.g. poll it would be POLLIN.
+     *
+     * @return file descriptor
+     */
+    [[nodiscard]] int getFdForInputEvent() const;
 
-    using EdgeHandler = std::function<void(std::uint64_t ts_mon_ns, Edge event)>;
-    void pollInspect(pollfd& pfd, const EdgeHandler& handler) const;
+    using EdgeHandler = std::function<void(TimePoint timePoint, Edge event)>;
+    [[nodiscard]] bool inspectInput(const EdgeHandler& handler) const;
 };
 } // namespace suc::gpio
 

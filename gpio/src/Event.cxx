@@ -22,32 +22,38 @@
 #include <suc/cmn/ErrnoError.hxx>
 
 #include <algorithm>
+#include <format>
 #include <linux/gpio.h>
 #include <unistd.h>
 
+namespace
+{
+using namespace suc::gpio;
+namespace c = std::chrono;
+
+Event::TimePoint timepoint(const uint64_t& nanoSeconds)
+{
+    return Event::TimePoint {c::duration_cast<Event::Duration>(c::nanoseconds(nanoSeconds))};
+}
+} // namespace
+
 namespace suc::gpio
 {
-Event::Event(suc::cmn::Fd&& fd) : Input(std::move(fd))
+Event::Event(cmn::Fd&& fd) : Input(std::move(fd))
 {
 }
 
-void Event::pollSetup(pollfd& pfd) const
+int Event::getFdForInputEvent() const
 {
-    pfd.fd      = m_fd;
-    pfd.events  = POLLIN;
-    pfd.revents = 0;
+    return m_fd;
 }
 
-void Event::pollInspect(pollfd& pfd, const EdgeHandler& handler) const
+bool Event::inspectInput(const EdgeHandler& handler) const
 {
-    if (pfd.revents & POLLIN)
+    gpio_v2_line_event event {};
+    if (const ssize_t rvRead = read(m_fd, &event, sizeof(event)); rvRead == sizeof(event))
     {
-        gpio_v2_line_event event {};
-        if (read(m_fd, &event, sizeof(event)) != sizeof(event))
-        {
-            throw suc::cmn::ErrnoError("read event");
-        };
-        handler(event.timestamp_ns,
+        handler(timepoint(event.timestamp_ns),
                 [](const std::uint32_t id) -> Edge
                 {
                     if (id == GPIOEVENT_EVENT_RISING_EDGE)
@@ -60,6 +66,21 @@ void Event::pollInspect(pollfd& pfd, const EdgeHandler& handler) const
                     }
                     throw std::runtime_error("unknown edge event");
                 }(event.id));
+        return true;
+    }
+    else if (rvRead == -1)
+    {
+        const int errorNumber = errno;
+        if (errorNumber == EAGAIN)
+        {
+            return false;
+        }
+        throw cmn::ErrnoError("read event", errorNumber);
+    }
+    else
+    {
+        throw std::runtime_error(
+            std::format("unexpected read size: got={}, expected={}", rvRead, sizeof(event)));
     }
 }
 } // namespace suc::gpio

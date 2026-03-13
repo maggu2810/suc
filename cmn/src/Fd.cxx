@@ -29,7 +29,8 @@ Fd Fd::make(const int fd, const std::string_view msg, const bool withErrno)
     if (fd < 0)
     {
         const int         errorNumber = errno;
-        std::stringstream ss {"invalid file descriptor"};
+        std::stringstream ss;
+        ss << "invalid file descriptor";
         if (!msg.empty())
         {
             ss << "; " << msg;

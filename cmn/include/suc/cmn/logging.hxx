@@ -15,6 +15,29 @@
 #ifndef SUC_CMN_LOGGING_HXX
 #define SUC_CMN_LOGGING_HXX
 
+#include <iostream>
+#include <source_location>
+
+class logger
+{
+public:
+    constexpr explicit logger(std::source_location&& sl = std::source_location::current())
+        : m_sl {sl}
+    {
+    }
+
+    template<typename... A>
+    constexpr void error(std::format_string<A...> fmt, A&&... a) const
+    {
+        const auto message = std::format(fmt, std::forward<A>(a)...);
+        std::clog << "file: " << m_sl.file_name() << '(' << m_sl.line() << ':' << m_sl.column()
+                  << ") `" << m_sl.function_name() << "`: " << message << '\n';
+    }
+
+private:
+    const std::source_location m_sl;
+};
+
 #include <format>
 #include <iostream>
 #include <ostream>

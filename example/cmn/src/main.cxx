@@ -40,5 +40,7 @@ int main(int argc, char* argv[])
     be             = suc::cmn::convert<std::endian::big, decltype(le)>(&value);
     std::cout << std::format("value: {:#x}, le2: {:#x}, le3: {:#x}\n", value, le2, le3);
 
+    logger().error("this is a {}", 3);
+
     return EXIT_SUCCESS;
 }
