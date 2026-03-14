@@ -84,10 +84,25 @@ int sd_journal_sendv(const iovec* iov, int n)
 } // namespace
 #endif
 
-namespace
+namespace suc::logging::impl
 {
-void toJournal(std::vector<std::string>&& fields)
+void log(Level                                      level,
+         const std::string&                         message,
+         const std::optional<std::source_location>& slocOpt)
 {
+    std::vector<std::string> fields;
+    fields.reserve(slocOpt ? 6 : 2);
+    fields.emplace_back(std::format("MESSAGE={}", message));
+    fields.emplace_back(std::format("PRIORITY={}", std::to_underlying(level)));
+    if (slocOpt)
+    {
+        const std::source_location& sloc = *slocOpt;
+        fields.emplace_back(std::format("CODE_COLUMN={}", sloc.column()));
+        fields.emplace_back(std::format("CODE_LINE={}", sloc.line()));
+        fields.emplace_back(std::format("CODE_FUNC={}", sloc.function_name()));
+        fields.emplace_back(std::format("CODE_FILE={}", sloc.file_name()));
+    }
+
     std::vector<iovec> iov;
     iov.reserve(fields.size());
     for (auto& s : fields)
@@ -96,29 +111,6 @@ void toJournal(std::vector<std::string>&& fields)
     }
 
     std::ignore = sd_journal_sendv(iov.data(), static_cast<int>(iov.size()));
-}
-} // namespace
-
-namespace suc::logging::impl
-{
-void log(Level level, const std::string& message)
-{
-    toJournal({
-        std::format("MESSAGE={}", message),                   //
-        std::format("PRIORITY={}", std::to_underlying(level)) //
-    });
-}
-
-void log(Level level, const std::string& message, const std::source_location& sloc)
-{
-    toJournal({
-        std::format("MESSAGE={}", message),                    //
-        std::format("PRIORITY={}", std::to_underlying(level)), //
-        std::format("CODE_COLUMN={}", sloc.column()),          //
-        std::format("CODE_LINE={}", sloc.line()),              //
-        std::format("CODE_FUNC={}", sloc.function_name()),     //
-        std::format("CODE_FILE={}", sloc.file_name())          //
-    });
 }
 
 } // namespace suc::logging::impl

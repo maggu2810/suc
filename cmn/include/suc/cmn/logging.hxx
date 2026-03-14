@@ -49,55 +49,50 @@ enum class Level : decltype(LOG_INFO)
 namespace impl
 {
 template<typename... Args>
-struct FormatStringWithSourceLocation
+struct FormatStringWithOptSourceLocation
 {
     template<typename T>
     requires std::constructible_from<std::format_string<Args...>, const T&>
-    consteval FormatStringWithSourceLocation(
-        const T&             fmt,
-        std::source_location sloc = std::source_location::current())
+    consteval FormatStringWithOptSourceLocation(const T&                            fmt,
+                                                std::optional<std::source_location> sloc =
+#if SUC_LOGGING_SLOC
+                                                    std::source_location::current()
+#else
+                                                    std::nullopt
+#endif
+                                                    )
         : fmt {fmt}, sloc {sloc}
     {
     }
 
-    std::format_string<Args...> fmt;
-    std::source_location        sloc;
+    std::format_string<Args...>         fmt;
+    std::optional<std::source_location> sloc;
 };
 
-void log(Level level, const std::string& message);
-void log(Level level, const std::string& message, const std::source_location& sloc);
+void log(Level level, const std::string& message, const std::optional<std::source_location>& sloc);
 
 template<Level level = Level::Info, class... Args>
-constexpr void log(FormatStringWithSourceLocation<Args...>&& fmt, Args&&... args)
+constexpr void log(std::optional<std::source_location>&& sloc,
+                   std::format_string<Args...>&&         fmt,
+                   Args&&... args)
 {
-    log(level,
-        std::format(std::forward<std::format_string<Args...>>(fmt.fmt),
-                    std::forward<Args>(args)...),
-        fmt.sloc);
+    impl::log(
+        level,
+        std::format(std::forward<std::format_string<Args...>>(fmt), std::forward<Args>(args)...),
+        sloc);
 }
-
-template<Level level = Level::Info, class... Args>
-constexpr void log(std::format_string<Args...>&& fmt, Args&&... args)
-{
-    log(level,
-        std::format(std::forward<std::format_string<Args...>>(fmt), std::forward<Args>(args)...));
-}
-
 } // namespace impl
 
 template<typename... Args>
-using FormatString =
-#if SUC_LOGGING_SLOC
-    impl::FormatStringWithSourceLocation
-#else
-    std::format_string
-#endif
-    <std::type_identity_t<Args>...>;
+using FormatStringWithOptSourceLocation =
+    impl::FormatStringWithOptSourceLocation<std::type_identity_t<Args>...>;
 
 template<Level level = Level::Info, class... Args>
-constexpr void log(FormatString<Args...>&& fmt, Args&&... args)
+constexpr void log(FormatStringWithOptSourceLocation<Args...>&& fmt, Args&&... args)
 {
-    impl::log(std::forward<FormatString<Args...>>(fmt), std::forward<Args>(args)...);
+    impl::log(std::forward<std::optional<std::source_location>>(fmt.sloc),
+              std::forward<std::format_string<Args...>>(fmt.fmt),
+              std::forward<Args>(args)...);
 }
 
 } // namespace suc::logging
