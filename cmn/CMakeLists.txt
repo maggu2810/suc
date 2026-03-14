@@ -23,10 +23,16 @@ add_library(${NAME}
         src/to_string.cxx
 )
 
-find_package(PkgConfig)
-pkg_check_modules(LIBSYSTEMD libsystemd REQUIRED)
-target_include_directories(${NAME} PRIVATE ${LIBSYSTEMD_INCLUDE_DIRS})
-target_link_libraries(${NAME} PRIVATE ${LIBSYSTEMD_LIBRARIES})
+option(LINK_SYSTEMD "link against systemd" OFF)
+if (LINK_SYSTEMD)
+    find_package(PkgConfig)
+    pkg_check_modules(LIBSYSTEMD libsystemd REQUIRED)
+    target_include_directories(${NAME} PRIVATE ${LIBSYSTEMD_INCLUDE_DIRS})
+    target_link_libraries(${NAME} PRIVATE ${LIBSYSTEMD_LIBRARIES})
+    target_compile_definitions(${NAME} PRIVATE LINK_SYSTEMD=1)
+else ()
+    target_compile_definitions(${NAME} PRIVATE LINK_SYSTEMD=0)
+endif ()
 
 target_include_directories(${NAME} PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>

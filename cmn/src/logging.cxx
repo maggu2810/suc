@@ -16,33 +16,109 @@
 // Created by maggu2810 on 3/13/26.
 //
 
-#include "suc/cmn/logging.hxx"
-
+#if LINK_SYSTEMD
 #define SD_JOURNAL_SUPPRESS_LOCATION
 #include <systemd/sd-journal.h>
+#endif
+
+#include "suc/cmn/logging.hxx"
+
+#include <string>
+#include <sys/uio.h>
+#include <vector>
+
+#if not LINK_SYSTEMD
+#include <dlfcn.h>
+
+namespace
+{
+using sd_journal_sendv_t = int (*)(const struct iovec* iov, int n);
+
+int sd_journal_sendv_fallback(const iovec* iov, int n)
+{
+    printf("[\n");
+    for (int i = 0; i < n; i++)
+    {
+        const auto& io = iov[i];
+        printf("  %.*s\n", static_cast<int>(io.iov_len), static_cast<const char*>(io.iov_base));
+    }
+    printf("]\n");
+    return 0;
+}
+
+sd_journal_sendv_t sd_journal_sendv_resolve()
+{
+    void* handle {nullptr};
+    for (const char* libname : std::initializer_list {"libsystemd.so.0", "libsystemd.so"})
+    {
+        handle = dlopen(libname, RTLD_NOW | RTLD_LOCAL);
+        if (handle)
+        {
+            break;
+        }
+    }
+    if (!handle)
+    {
+        return &sd_journal_sendv_fallback;
+    }
+
+    dlerror(); // clear
+    auto        sym = dlsym(handle, "sd_journal_sendv");
+    const char* err = dlerror();
+    if (err)
+    {
+        dlclose(handle);
+        return &sd_journal_sendv_fallback;
+    }
+
+    auto sym_sd_journal_sendv = reinterpret_cast<sd_journal_sendv_t>(sym);
+    return sym_sd_journal_sendv;
+    // dlclose(handle); // handle must not be closed
+}
+
+int sd_journal_sendv(const iovec* iov, int n)
+{
+    static sd_journal_sendv_t targetFunc = sd_journal_sendv_resolve();
+    return targetFunc(iov, n);
+}
+} // namespace
+#endif
+
+namespace
+{
+void toJournal(std::vector<std::string>&& fields)
+{
+    std::vector<iovec> iov;
+    iov.reserve(fields.size());
+    for (auto& s : fields)
+    {
+        iov.emplace_back(s.data(), s.size());
+    }
+
+    std::ignore = sd_journal_sendv(iov.data(), static_cast<int>(iov.size()));
+}
+} // namespace
 
 namespace suc::logging::impl
 {
 void log(Level level, const std::string& message)
 {
-    sd_journal_send("MESSAGE=%s", message.c_str(), "PRIORITY=%i", std::to_underlying(level), NULL);
+    toJournal({
+        std::format("MESSAGE={}", message),                   //
+        std::format("PRIORITY={}", std::to_underlying(level)) //
+    });
 }
 
 void log(Level level, const std::string& message, const std::source_location& sloc)
 {
-    sd_journal_send("MESSAGE=%s",
-                    message.c_str(),
-                    "PRIORITY=%i",
-                    std::to_underlying(level),
-                    "CODE_COLUMN=%" PRIuLEAST32,
-                    sloc.column(),
-                    "CODE_LINE=%" PRIuLEAST32,
-                    sloc.line(),
-                    "CODE_FUNC=%s",
-                    sloc.function_name(),
-                    "CODE_FILE=%s",
-                    sloc.file_name(),
-                    NULL);
+    toJournal({
+        std::format("MESSAGE={}", message),                    //
+        std::format("PRIORITY={}", std::to_underlying(level)), //
+        std::format("CODE_COLUMN={}", sloc.column()),          //
+        std::format("CODE_LINE={}", sloc.line()),              //
+        std::format("CODE_FUNC={}", sloc.function_name()),     //
+        std::format("CODE_FILE={}", sloc.file_name())          //
+    });
 }
 
-} // namespace suc::cmn::logging::impl
+} // namespace suc::logging::impl
