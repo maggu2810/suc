@@ -32,6 +32,8 @@
 #endif
 #endif
 
+#define FWD(x) std::forward<decltype(x)>(x)
+
 namespace suc::logging
 {
 enum class Level : decltype(LOG_INFO)
@@ -69,18 +71,13 @@ void logf(Level level, const std::string& message, const std::optional<std::sour
 template<Level level = Level::Info, class... Args>
 constexpr void logf(FormatStringWithSourceLocation<Args...>&& fmt, Args&&... args)
 {
-    logf(level,
-         std::format(std::forward<std::format_string<Args...>>(fmt.fmt),
-                     std::forward<Args>(args)...),
-         std::forward<std::source_location>(fmt.sloc));
+    logf(level, std::format(FWD(fmt.fmt), FWD(args)...), FWD(fmt.sloc));
 }
 
 template<Level level = Level::Info, class... Args>
 constexpr void logf(std::format_string<Args...>&& fmt, Args&&... args)
 {
-    logf(level,
-         std::format(std::forward<std::format_string<Args...>>(fmt), std::forward<Args>(args)...),
-         std::nullopt);
+    logf(level, std::format(FWD(fmt), FWD(args)...), std::nullopt);
 }
 } // namespace impl
 
@@ -102,7 +99,7 @@ using FormatString =
 template<Level level = Level::Info, class... Args>
 constexpr void logf(FormatString<Args...>&& fmt, Args&&... args)
 {
-    impl::logf(std::forward<FormatString<Args...>>(fmt), std::forward<Args>(args)...);
+    impl::logf(FWD(fmt), FWD(args)...);
 }
 } // namespace suc::logging
 
@@ -114,5 +111,7 @@ constexpr void logf(FormatString<Args...>&& fmt, Args&&... args)
 #define LOGFC(...) suc::logging::logf<suc::logging::Level::Critical>(__VA_ARGS__)
 #define LOGFA(...) suc::logging::logf<suc::logging::Level::Alert>(__VA_ARGS__)
 #define LOGFU(...) suc::logging::logf<suc::logging::Level::Emergency>(__VA_ARGS__)
+
+#undef FWD
 
 #endif // SUC_LOGGING_HXX
