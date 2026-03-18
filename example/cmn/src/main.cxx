@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#define SUC_LOGGING_SLOC 1
+#define SUC_LOGGING_SLOC 0
 
 #include <iostream>
 #include <suc/cmn/endian.hxx>
@@ -43,6 +43,8 @@ int main(int argc, char* argv[])
     std::cout << std::format("value: {:#x}, le2: {:#x}, le3: {:#x}\n", value, le2, le3);
 
     LOGFI("hello {} world {}", "funny", 2);
+
+    suc::logging::logf<suc::logging::Level::Warning>("my {}", "dear");
 
     return EXIT_SUCCESS;
 }

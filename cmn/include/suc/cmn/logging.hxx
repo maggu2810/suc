@@ -49,61 +49,70 @@ enum class Level : decltype(LOG_INFO)
 namespace impl
 {
 template<typename... Args>
-struct FormatStringWithOptSourceLocation
+struct FormatStringWithSourceLocation
 {
     template<typename T>
     requires std::constructible_from<std::format_string<Args...>, const T&>
-    consteval FormatStringWithOptSourceLocation(const T&                            fmt,
-                                                std::optional<std::source_location> sloc =
-#if SUC_LOGGING_SLOC
-                                                    std::source_location::current()
-#else
-                                                    std::nullopt
-#endif
-                                                    )
+    consteval FormatStringWithSourceLocation(
+        const T&             fmt,
+        std::source_location sloc = std::source_location::current())
         : fmt {fmt}, sloc {sloc}
     {
     }
 
-    std::format_string<Args...>         fmt;
-    std::optional<std::source_location> sloc;
+    std::format_string<Args...> fmt;
+    std::source_location        sloc;
 };
 
-void log(Level level, const std::string& message, const std::optional<std::source_location>& sloc);
+void logf(Level level, const std::string& message, const std::optional<std::source_location>& sloc);
 
 template<Level level = Level::Info, class... Args>
-constexpr void log(std::optional<std::source_location>&& sloc,
-                   std::format_string<Args...>&&         fmt,
-                   Args&&... args)
+constexpr void logf(FormatStringWithSourceLocation<Args...>&& fmt, Args&&... args)
 {
-    impl::log(
-        level,
-        std::format(std::forward<std::format_string<Args...>>(fmt), std::forward<Args>(args)...),
-        sloc);
+    logf(level,
+         std::format(std::forward<std::format_string<Args...>>(fmt.fmt),
+                     std::forward<Args>(args)...),
+         std::forward<std::source_location>(fmt.sloc));
+}
+
+template<Level level = Level::Info, class... Args>
+constexpr void logf(std::format_string<Args...>&& fmt, Args&&... args)
+{
+    logf(level,
+         std::format(std::forward<std::format_string<Args...>>(fmt), std::forward<Args>(args)...),
+         std::nullopt);
 }
 } // namespace impl
 
 template<typename... Args>
-using FormatStringWithOptSourceLocation =
-    impl::FormatStringWithOptSourceLocation<std::type_identity_t<Args>...>;
+using FormatStringWithSourceLocation =
+    impl::FormatStringWithSourceLocation<std::type_identity_t<Args>...>;
+template<typename... Args>
+using FormatStringWithoutSourceLocation = std::format_string<std::type_identity_t<Args>...>;
+
+template<typename... Args>
+using FormatString =
+#if SUC_LOGGING_SLOC
+    FormatStringWithSourceLocation
+#else
+    FormatStringWithoutSourceLocation
+#endif
+    <std::type_identity_t<Args>...>;
 
 template<Level level = Level::Info, class... Args>
-constexpr void log(FormatStringWithOptSourceLocation<Args...>&& fmt, Args&&... args)
+constexpr void logf(FormatString<Args...>&& fmt, Args&&... args)
 {
-    impl::log(std::forward<std::optional<std::source_location>>(fmt.sloc),
-              std::forward<std::format_string<Args...>>(fmt.fmt),
-              std::forward<Args>(args)...);
+    impl::logf(std::forward<FormatString<Args...>>(fmt), std::forward<Args>(args)...);
 }
-
 } // namespace suc::logging
 
-#define LOGFD(...) suc::logging::log<suc::logging::Level::Debug>(__VA_ARGS__)
-#define LOGFI(...) suc::logging::log<suc::logging::Level::Info>(__VA_ARGS__)
-#define LOGFN(...) suc::logging::log<suc::logging::Level::Notice>(__VA_ARGS__)
-#define LOGFW(...) suc::logging::log<suc::logging::Level::Warning>(__VA_ARGS__)
-#define LOGFE(...) suc::logging::log<suc::logging::Level::Error>(__VA_ARGS__)
-#define LOGFC(...) suc::logging::log<suc::logging::Level::Critical>(__VA_ARGS__)
-#define LOGFA(...) suc::logging::log<suc::logging::Level::Alert>(__VA_ARGS__)
-#define LOGFU(...) suc::logging::log<suc::logging::Level::Emergency>(__VA_ARGS__)
+#define LOGFD(...) suc::logging::logf<suc::logging::Level::Debug>(__VA_ARGS__)
+#define LOGFI(...) suc::logging::logf<suc::logging::Level::Info>(__VA_ARGS__)
+#define LOGFN(...) suc::logging::logf<suc::logging::Level::Notice>(__VA_ARGS__)
+#define LOGFW(...) suc::logging::logf<suc::logging::Level::Warning>(__VA_ARGS__)
+#define LOGFE(...) suc::logging::logf<suc::logging::Level::Error>(__VA_ARGS__)
+#define LOGFC(...) suc::logging::logf<suc::logging::Level::Critical>(__VA_ARGS__)
+#define LOGFA(...) suc::logging::logf<suc::logging::Level::Alert>(__VA_ARGS__)
+#define LOGFU(...) suc::logging::logf<suc::logging::Level::Emergency>(__VA_ARGS__)
 
 #endif // SUC_LOGGING_HXX

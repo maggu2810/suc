@@ -86,9 +86,9 @@ int sd_journal_sendv(const iovec* iov, int n)
 
 namespace suc::logging::impl
 {
-void log(Level                                      level,
-         const std::string&                         message,
-         const std::optional<std::source_location>& slocOpt)
+void logf(Level                                      level,
+          const std::string&                         message,
+          const std::optional<std::source_location>& slocOpt)
 {
     std::vector<std::string> fields;
     fields.reserve(slocOpt ? 6 : 2);
