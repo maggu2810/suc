@@ -65,7 +65,17 @@ public:
 
     void add(int fd, const std::function<void(Callbacks&)>& callbacks = {});
     void mod(int fd, const std::function<void(Callbacks&)>& callbacks);
+
+    /**
+     * @brief Removes a file descriptor from the event queue.
+     *
+     * If there are pending events, they will not be processed anymore.
+     *
+     * @param fd the file descriptor that should not be used for event handling anymore
+     */
     void del(int fd);
+
+    void delSafe(int fd) noexcept;
 
 private:
     void handleEpollFilledEvent(uint32_t events, int fd);

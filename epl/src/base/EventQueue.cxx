@@ -21,8 +21,10 @@
 #include "suc/epl/base/InputFlags.hxx"
 
 #include <format>
+#include <iostream>
 #include <set>
 #include <suc/cmn/ErrnoError.hxx>
+#include <suc/cmn/logging.hxx>
 #include <sys/epoll.h>
 #include <sys/eventfd.h>
 #include <unistd.h>
@@ -59,12 +61,16 @@ enum class event_type {
 
 namespace
 {
-constexpr const std::initializer_list<EPOLL_EVENTS> kEventTypes {EPOLLIN,
-                                                                 EPOLLOUT,
-                                                                 EPOLLRDHUP,
-                                                                 EPOLLPRI,
-                                                                 EPOLLERR,
-                                                                 EPOLLHUP};
+// the list is iterated to handle events
+// ensure err and hup is handled first, so keep them in front
+constexpr std::initializer_list<EPOLL_EVENTS> kEventTypes {
+    EPOLLERR,
+    EPOLLHUP,
+    EPOLLIN,
+    EPOLLOUT,
+    EPOLLRDHUP,
+    EPOLLPRI,
+};
 
 const std::function<void()>& cbFunc(const suc::epl::Callbacks& cb, EPOLL_EVENTS eventType)
 {
@@ -88,7 +94,8 @@ const std::function<void()>& cbFunc(const suc::epl::Callbacks& cb, EPOLL_EVENTS 
     }
 }
 
-uint32_t calculateEvents(const suc::epl::Callbacks& cb, const std::set<suc::epl::InputFlags>& iflags)
+uint32_t calculateEvents(const suc::epl::Callbacks&            cb,
+                         const std::set<suc::epl::InputFlags>& iflags)
 {
     uint32_t events = (iflags.contains(suc::epl::InputFlags::EdgeTriggered) ? EPOLLET : 0U) |   //
                       (iflags.contains(suc::epl::InputFlags::OneShot) ? EPOLLONESHOT : 0U) |    //
@@ -102,6 +109,23 @@ uint32_t calculateEvents(const suc::epl::Callbacks& cb, const std::set<suc::epl:
         }
     }
     return events;
+}
+
+void log(const std::exception& exc, int level = 0)
+{
+    suc::logging::logf("{:>{}}exception: {}\n", "", level, exc.what());
+
+    try
+    {
+        std::rethrow_if_nested(exc);
+    }
+    catch (const std::exception& nested)
+    {
+        log(nested, level + 1);
+    }
+    catch (...)
+    {
+    }
 }
 } // namespace
 
@@ -125,10 +149,11 @@ EventQueue::EventQueue(Private)
 {
     auto [it, inserted] = m_fds.emplace(*m_evtfd,
                                         Callbacks {.inputAvailable = [&] -> void
-                                            {
-                                                // We do no special handling here. We just want to
-                                                // be sure to handle e.g. changed state variable.
-                                            }});
+                                                   {
+                                                       // We do no special handling here. We just
+                                                       // want to be sure to handle e.g. changed
+                                                       // state variable.
+                                                   }});
     if (!inserted)
     {
         throw std::runtime_error("adding event file descriptor failed");
@@ -202,7 +227,14 @@ void EventQueue::handleEpollFilledEvent(const uint32_t events, const int fd)
         }
 
         // Call the function for the triggered event type:
-        func();
+        try
+        {
+            func();
+        }
+        catch (const std::exception& exc)
+        {
+            log(exc);
+        }
 
         // After the callback has been called, running could be changed.
         if (!running())
@@ -297,12 +329,24 @@ void EventQueue::del(const int fd)
             // see "man 7 epoll" answer to question:
             // "Will closing a file descriptor cause it to be removed from all epoll interest
             // lists?" ATM we require to deregister before closing it.
-            throw cmn::ErrnoError("epoll_ctl del failed");
+            throw cmn::ErrnoError("epoll_ctl del failed (EBADF)");
         }
         else
         {
             throw cmn::ErrnoError("epoll_ctl del failed");
         }
+    }
+}
+
+void EventQueue::delSafe(const int fd) noexcept
+{
+    try
+    {
+        del(fd);
+    }
+    catch (const std::exception& exc)
+    {
+        log(exc);
     }
 }
 } // namespace suc::epl

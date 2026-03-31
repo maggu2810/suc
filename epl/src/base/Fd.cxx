@@ -29,7 +29,7 @@ Fd::Fd(cmn::Fd&& fd, EventQueue& eventQueue) : m_fd(std::move(fd)), m_eventQueue
 
 Fd::~Fd()
 {
-    m_eventQueue.del(m_fd);
+    m_eventQueue.delSafe(m_fd);
 }
 
 void Fd::onInputAvailable(std::function<void()>&& cb) const

@@ -33,6 +33,7 @@ class SignalFd
 private:
     [[nodiscard]] static sigset_t createSigSet(std::initializer_list<int> signals);
 
+    // uses sigprocmask(SIG_BLOCK, &sigset, nullptr), so think about threading / process related signals
     static void blockSignals(const sigset_t& sigset);
 
     explicit SignalFd(const sigset_t& sigset, EventQueue& eventQueue = EventQueue::coreInstance());
