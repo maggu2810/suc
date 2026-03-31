@@ -154,7 +154,7 @@ int EventQueue::exec()
     epoll_event   eplEvents[max_events];
     while (running())
     {
-        const int rv = epoll_wait(*m_epfd, eplEvents, std::size(eplEvents), 0);
+        const int rv = epoll_wait(*m_epfd, eplEvents, std::size(eplEvents), -1);
         if (rv == -1)
         {
             int errnum = errno;
