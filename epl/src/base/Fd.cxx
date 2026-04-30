@@ -14,11 +14,10 @@
 
 //
 // Created by maggu2810 on 11/4/25.
-//
 
 #include "suc/epl/base/Fd.hxx"
 
-#define EQ_MOD(MEMBER) m_eventQueue.mod(m_fd, [&](auto& callbacks) { callbacks.MEMBER = std::move(cb); })
+#include <functional>
 
 namespace suc::epl
 {
@@ -32,34 +31,39 @@ Fd::~Fd()
     m_eventQueue.delSafe(m_fd);
 }
 
+void Fd::setCallback(std::function<void()> Callbacks::* member, std::function<void()>&& cb) const
+{
+    m_eventQueue.mod(m_fd, [&](Callbacks& callbacks) { callbacks.*member = std::move(cb); });
+}
+
 void Fd::onInputAvailable(std::function<void()>&& cb) const
 {
-    EQ_MOD(inputAvailable);
+    setCallback(&Callbacks::inputAvailable, std::move(cb));
 }
 
 void Fd::onOutputPossible(std::function<void()>&& cb) const
 {
-    EQ_MOD(outputPossible);
+    setCallback(&Callbacks::outputPossible, std::move(cb));
 }
 
 void Fd::onPriorityData(std::function<void()>&& cb) const
 {
-    EQ_MOD(priorityData);
+    setCallback(&Callbacks::priorityData, std::move(cb));
 }
 
 void Fd::onReadSideHangUp(std::function<void()>&& cb) const
 {
-    EQ_MOD(readSideHangUp);
+    setCallback(&Callbacks::readSideHangUp, std::move(cb));
 }
 
 void Fd::onHangUp(std::function<void()>&& cb) const
 {
-    EQ_MOD(hangUp);
+    setCallback(&Callbacks::hangUp, std::move(cb));
 }
 
 void Fd::onError(std::function<void()>&& cb) const
 {
-    EQ_MOD(errorOccurred);
+    setCallback(&Callbacks::errorOccurred, std::move(cb));
 }
 
 } // namespace suc::epl

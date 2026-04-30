@@ -49,6 +49,8 @@ public:
     }
 
 private:
+    void setCallback(std::function<void()> Callbacks::* member, std::function<void()>&& cb) const;
+
     cmn::Fd     m_fd;
     EventQueue& m_eventQueue;
 };
