@@ -50,22 +50,28 @@ int Event::getFdForInputEvent() const
 
 bool Event::inspectInput(const EdgeHandler& handler) const
 {
-    gpio_v2_line_event event {};
-    if (const ssize_t rvRead = read(m_fd, &event, sizeof(event)); rvRead == sizeof(event))
+    gpio_v2_line_event events[16]; // V2 max buffer is 16
+    const ssize_t      rvRead = read(m_fd, events, sizeof(events));
+
+    if (rvRead > 0)
     {
-        handler(timepoint(event.timestamp_ns),
-                [](const std::uint32_t id) -> Edge
-                {
-                    if (id == GPIOEVENT_EVENT_RISING_EDGE)
+        const size_t numEvents = static_cast<size_t>(rvRead) / sizeof(gpio_v2_line_event);
+        for (size_t i = 0; i < numEvents; ++i)
+        {
+            handler(timepoint(events[i].timestamp_ns),
+                    [](const std::uint32_t id) -> Edge
                     {
-                        return Edge::Rising;
-                    }
-                    if (id == GPIOEVENT_EVENT_FALLING_EDGE)
-                    {
-                        return Edge::Falling;
-                    }
-                    throw std::runtime_error("unknown edge event");
-                }(event.id));
+                        if (id == GPIO_V2_LINE_EVENT_RISING_EDGE)
+                        {
+                            return Edge::Rising;
+                        }
+                        if (id == GPIO_V2_LINE_EVENT_FALLING_EDGE)
+                        {
+                            return Edge::Falling;
+                        }
+                        throw std::runtime_error("unknown edge event");
+                    }(events[i].id));
+        }
         return true;
     }
     else if (rvRead == -1)
@@ -79,8 +85,7 @@ bool Event::inspectInput(const EdgeHandler& handler) const
     }
     else
     {
-        throw std::runtime_error(
-            std::format("unexpected read size: got={}, expected={}", rvRead, sizeof(event)));
+        throw std::runtime_error(std::format("unexpected read size: got={}", rvRead));
     }
 }
 } // namespace suc::gpio

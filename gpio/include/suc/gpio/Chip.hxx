@@ -38,6 +38,17 @@ struct InputLineArgs
     std::optional<std::uint32_t> debounce_period_us {};
 };
 
+struct EventLineArgs : public InputLineArgs
+{
+    enum class Edge
+    {
+        Rising,
+        Falling,
+        Both
+    };
+    Edge edge {Edge::Both};
+};
+
 class Chip
 {
 public:
@@ -47,8 +58,8 @@ public:
                                    const LineArgs&       lineArgs       = {},
                                    const InputLineArgs& inputLineArgs = {}) const;
     [[nodiscard]] Event  getEvent(std::uint32_t          line,
-                                   const LineArgs&       lineArgs       = {},
-                                   const InputLineArgs& inputLineArgs = {}) const;
+                                   const LineArgs&       lineArgs      = {},
+                                   const EventLineArgs& eventLineArgs = {}) const;
     [[nodiscard]] Output getOutput(std::uint32_t line, const LineArgs& lineArgs = {}) const;
 
 private:

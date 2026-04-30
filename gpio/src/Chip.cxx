@@ -22,6 +22,8 @@
 #include <linux/gpio.h>
 #include <sys/ioctl.h>
 
+extern char *program_invocation_short_name;
+
 namespace
 {
 suc::cmn::Fd getLine(const int                                      chipFd,
@@ -72,6 +74,13 @@ suc::cmn::Fd getLine(const int                                      chipFd,
     {
         throw suc::cmn::ErrnoError(std::format("get line {} failed", line));
     }
+
+    const int fd_flags = fcntl(line_request.fd, F_GETFL);
+    if (fd_flags >= 0)
+    {
+        fcntl(line_request.fd, F_SETFL, fd_flags | O_NONBLOCK);
+    }
+
     return suc::cmn::Fd::make(line_request.fd);
 }
 } // namespace
@@ -94,14 +103,23 @@ Input Chip::getInput(const std::uint32_t  line,
 
 Event Chip::getEvent(const std::uint32_t  line,
                      const LineArgs&      lineArgs,
-                     const InputLineArgs& inputLineArgs) const
+                     const EventLineArgs& eventLineArgs) const
 {
+    std::uint64_t edgeFlags = 0;
+    if (eventLineArgs.edge == EventLineArgs::Edge::Rising || eventLineArgs.edge == EventLineArgs::Edge::Both)
+    {
+        edgeFlags |= GPIO_V2_LINE_FLAG_EDGE_RISING;
+    }
+    if (eventLineArgs.edge == EventLineArgs::Edge::Falling || eventLineArgs.edge == EventLineArgs::Edge::Both)
+    {
+        edgeFlags |= GPIO_V2_LINE_FLAG_EDGE_FALLING;
+    }
+
     return Event {getLine(m_fd,
                           line,
-                          GPIO_V2_LINE_FLAG_INPUT | GPIO_V2_LINE_FLAG_EDGE_FALLING |
-                              GPIO_V2_LINE_FLAG_EDGE_RISING,
+                          GPIO_V2_LINE_FLAG_INPUT | edgeFlags,
                           lineArgs,
-                          inputLineArgs)};
+                          eventLineArgs)};
 }
 
 Output Chip::getOutput(const std::uint32_t line, const LineArgs& lineArgs) const
