@@ -19,7 +19,7 @@
 #define SUC_EPL_TIMERFD_HXX
 
 #include "suc/epl/base/Fd.hxx"
-#include <bits/types/struct_itimerspec.h>
+#include <sys/timerfd.h>
 
 namespace suc::epl
 {
@@ -35,8 +35,18 @@ public:
                      std::function<void(uint64_t)> func,
                      EventQueue&                   eventQueue = EventQueue::coreInstance());
 
+    /**
+     * @brief Set time the timer should fire.
+     *
+     * This function arms the timer. You cannot disarm the timer with this function.
+     */
     void setTime(const itimerspec& value) const;
 
+    /**
+     * @brief Cancel the timer.
+     *
+     * This function disarms the timer.
+     */
     void cancel() const;
 
     void onShot(std::function<void(uint64_t)>&& func) const;

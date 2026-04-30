@@ -20,6 +20,7 @@
 
 #include "suc/epl/base/InputFlags.hxx"
 
+#include <cerrno>
 #include <format>
 #include <iostream>
 #include <set>
@@ -172,8 +173,10 @@ int EventQueue::exec()
     {
         throw std::runtime_error("event queue not in idle state");
     }
-    uint64_t cnt;
-    read(*m_evtfd, &cnt, sizeof(cnt));
+    if (uint64_t cnt; read(*m_evtfd, &cnt, sizeof(cnt)) == -1 && errno != EAGAIN)
+    {
+        throw cmn::ErrnoError("read evtfd failed");
+    }
 
     constexpr int max_events = 20;
     epoll_event   eplEvents[max_events];
@@ -182,7 +185,12 @@ int EventQueue::exec()
         const int rv = epoll_wait(*m_epfd, eplEvents, std::size(eplEvents), -1);
         if (rv == -1)
         {
-            int errnum = errno;
+            const int errnum = errno;
+            if (errnum == EINTR)
+            {
+                // Signal interrupted system call, continue
+                continue;
+            }
             m_state.store(State::Error);
             throw cmn::ErrnoError("epoll_wait failed", errnum);
         }
@@ -219,7 +227,8 @@ void EventQueue::handleEpollFilledEvent(const uint32_t events, const int fd)
             // We need to check the next event type, so continue
             continue;
         }
-        const auto& func = cbFunc(it->second, eventType);
+        // We need to copy the callback as it could be deleted (del on fd) while executed.
+        const auto func = cbFunc(it->second, eventType);
         if (!func)
         {
             // No callback for the event type.
@@ -262,7 +271,11 @@ void EventQueue::stop(int value)
     }
     m_exitCode    = value;
     uint64_t incr = 1;
-    write(*m_evtfd, &incr, sizeof(incr));
+    if (write(*m_evtfd, &incr, sizeof(incr)) != sizeof(incr))
+    {
+        // leave the state as stopping, so the event queue is stops as soon as returning from wait.
+        throw cmn::ErrnoError("write evtfd failed");
+    }
 }
 
 bool EventQueue::running() const

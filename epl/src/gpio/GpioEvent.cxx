@@ -39,7 +39,7 @@ GpioEvent::GpioEvent(suc::gpio::Event&& gpioEvent, EventQueue& eventQueue)
 
 GpioEvent::~GpioEvent()
 {
-    m_eventQueue.del(m_gpioEvent.getFdForInputEvent());
+    m_eventQueue.delSafe(m_gpioEvent.getFdForInputEvent());
 }
 
 void GpioEvent::onEvent(suc::gpio::Event::EdgeHandler&& func) const

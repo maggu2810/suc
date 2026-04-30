@@ -52,6 +52,15 @@ class EventQueue
     };
 
 public:
+    /**
+     * @brief Returns the process-wide singleton EventQueue.
+     *
+     * The instance is a Meyers singleton (function-local static) and is destroyed when the
+     * program exits. Callers must ensure that no other static-lifetime object (i.e. objects
+     * with static storage duration) calls this function from their destructor, as the singleton
+     * may already have been destroyed by the time those destructors run, leading to
+     * undefined behaviour.
+     */
     static EventQueue& coreInstance();
 
     static EventQueue create();
